@@ -695,6 +695,8 @@ const state = {
   showAddSeatingForm: false,
   selectedSeatingId: null,
   editingSeatingId: null, // which seating area is being edited
+  editingVendorId: null, // which vendor is being edited
+  editingVendorData: {}, // temporary data for vendor being edited
   editingStageSize: false,
   
   // competition results (admin only)
@@ -1057,7 +1059,10 @@ function renderMap() {
         <div class="vendor-list-spec">${v.specialty}</div>
         <div style="font-size:11px;color:#888;margin-top:4px">${typeLabel}</div>
       </div>
-      <div class="booth-tag">${v.booth}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${state.adminMode ? `<button class="vendor-edit-btn" data-vendorid="${v.id}" style="background:#f97316;color:#000;border:none;border-radius:3px;padding:4px 8px;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-weight:700">✎ Edit</button>` : ''}
+        <div class="booth-tag">${v.booth}</div>
+      </div>
     </div>`;
   }).join('');
 
@@ -1125,6 +1130,42 @@ function renderMap() {
           <div style="display:flex;gap:10px">
             <button id="nvf-save" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Save</button>
             <button id="nvf-cancel" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+      
+      ${state.editingVendorId ? `
+        <div style="margin-top:16px;padding:14px;background:#1e1008;border:2px solid #f97316;border-radius:4px">
+          <div style="font-family:'Oswald',sans-serif;font-size:12px;color:#f97316;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">✎ Edit Vendor</div>
+          <input id="evf-name" type="text" placeholder="Vendor Name" value="${state.editingVendorData.name || ''}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:8px">
+          <input id="evf-booth" type="text" placeholder="Booth (e.g., A1)" value="${state.editingVendorData.booth || ''}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:8px">
+          <input id="evf-specialty" type="text" placeholder="Specialty" value="${state.editingVendorData.specialty || ''}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:8px">
+          <select id="evf-type" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:8px">
+            <option value="wing" ${state.editingVendorData.type === 'wing' ? 'selected' : ''}>🍗 Wing Vendor</option>
+            <option value="craft" ${state.editingVendorData.type === 'craft' ? 'selected' : ''}>🎨 Craft Vendor</option>
+            <option value="nonfood" ${state.editingVendorData.type === 'nonfood' ? 'selected' : ''}>🍕 Non-Wing Food</option>
+          </select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+            <input id="evf-x" type="number" min="0" max="100" placeholder="X %" value="${state.editingVendorData.x || ''}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+            <input id="evf-y" type="number" min="0" max="100" placeholder="Y %" value="${state.editingVendorData.y || ''}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+          </div>
+          ${state.editingVendorData.type === 'wing' ? `
+            <div style="margin-bottom:8px">
+              <div style="font-size:10px;color:#888;margin-bottom:4px">Competition Categories:</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px">
+                ${CONTEST_CATS.map(cat => {
+                  const selected = (state.editingVendorData.categories || []).includes(cat);
+                  return `
+                    <button class="evf-category-btn" data-cat="${cat}" style="background:${selected ? '#f97316' : '#1a1a1a'};color:${selected ? '#000' : '#f97316'};border:1px solid ${selected ? '#f97316' : '#2a2a2a'};border-radius:3px;padding:6px;font-size:10px;cursor:pointer;font-family:'Oswald',sans-serif;transition:all 0.2s">${cat}</button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
+          <div style="display:flex;gap:10px">
+            <button id="evf-save" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Save Changes</button>
+            <button id="evf-cancel" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+            <button id="evf-delete" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Delete</button>
           </div>
         </div>
       ` : ''}
@@ -1629,6 +1670,103 @@ function bindEvents() {
   if (cancelCompBtn) {
     cancelCompBtn.addEventListener('click', () => {
       state.showCompetitionEditor = false;
+      render();
+    });
+  }
+
+  // ── EDIT VENDOR (ADMIN ONLY) ──
+  document.querySelectorAll('.vendor-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const vendorId = +btn.dataset.vendorid;
+      const vendor = state.vendors.find(v => v.id === vendorId);
+      if (vendor) {
+        state.editingVendorId = vendorId;
+        state.editingVendorData = {
+          name: vendor.name,
+          booth: vendor.booth,
+          specialty: vendor.specialty,
+          type: vendor.type,
+          x: vendor.loc.x,
+          y: vendor.loc.y,
+          categories: vendor.categories || []
+        };
+        render();
+      }
+    });
+  });
+
+  // ── EDIT VENDOR CATEGORY TOGGLE ──
+  document.querySelectorAll('.evf-category-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const cat = btn.dataset.cat;
+      const categories = state.editingVendorData.categories || [];
+      if (categories.includes(cat)) {
+        state.editingVendorData.categories = categories.filter(c => c !== cat);
+      } else {
+        state.editingVendorData.categories = [...categories, cat];
+      }
+      render();
+    });
+  });
+
+  // ── SAVE EDITED VENDOR ──
+  const evfSave = document.getElementById('evf-save');
+  if (evfSave) {
+    evfSave.addEventListener('click', () => {
+      const name = document.getElementById('evf-name').value.trim();
+      const booth = document.getElementById('evf-booth').value.trim();
+      const specialty = document.getElementById('evf-specialty').value.trim();
+      const type = document.getElementById('evf-type').value;
+      const x = parseFloat(document.getElementById('evf-x').value);
+      const y = parseFloat(document.getElementById('evf-y').value);
+      
+      if (!name || !booth || isNaN(x) || isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
+        alert('Please fill in all fields with valid coordinates (0-100)');
+        return;
+      }
+      
+      state.vendors = state.vendors.map(v => 
+        v.id === state.editingVendorId
+          ? {
+              ...v,
+              name,
+              booth,
+              specialty,
+              type,
+              loc: {x, y},
+              categories: state.editingVendorData.categories || []
+            }
+          : v
+      );
+      
+      state.editingVendorId = null;
+      state.editingVendorData = {};
+      render();
+    });
+  }
+
+  // ── DELETE VENDOR ──
+  const evfDelete = document.getElementById('evf-delete');
+  if (evfDelete) {
+    evfDelete.addEventListener('click', () => {
+      const confirmed = confirm('⚠️ This will permanently delete this vendor. Are you sure?');
+      if (confirmed) {
+        state.vendors = state.vendors.filter(v => v.id !== state.editingVendorId);
+        state.editingVendorId = null;
+        state.editingVendorData = {};
+        render();
+      }
+    });
+  }
+
+  // ── CANCEL EDIT VENDOR ──
+  const evfCancel = document.getElementById('evf-cancel');
+  if (evfCancel) {
+    evfCancel.addEventListener('click', () => {
+      state.editingVendorId = null;
+      state.editingVendorData = {};
       render();
     });
   }
