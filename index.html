@@ -1131,16 +1131,14 @@ function renderMap() {
         <div style="background:#111;border:1px solid #2a2a2a;border-radius:3px;padding:12px">
           <div style="background:#0d0d0d;border:1px solid #222;border-radius:3px;padding:10px;margin-bottom:12px">
             <p style="color:#888;font-size:11px;line-height:1.6;margin:0 0 10px 0">
-              <strong style="color:#f97316">CSV Format (Wing vendors only):</strong><br>
+              <strong style="color:#f97316">CSV Format:</strong><br>
               name,booth,specialty,type,x,y,categories<br>
-              <em style="color:#666">• categories = vote contest categories (semicolon separated)</em><br>
-              <em style="color:#666">• Only wing vendors can vote • Craft/Food vendors skip categories</em><br>
-              <em style="color:#666">Example:</em><br>
-              Wings & Things,A1,Buffalo Hot,wing,20,30,"Best Hot;Most Unique"<br>
-              Crafty Co.,B1,Handmade,craft,40,50,""
+              <em style="color:#666">• type = wing, craft, or nonfood</em><br>
+              <em style="color:#666">• x,y = map position (0-100)</em><br>
+              <em style="color:#666">• categories = vote categories (semicolon separated, optional)</em>
             </p>
           </div>
-          <textarea id="import-csv" placeholder="Paste CSV data here..." style="width:100%;height:150px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:10px;color:#fff;font-size:12px;font-family:monospace;margin-bottom:10px">${state.importData}</textarea>
+          <input type="file" id="import-csv-file" accept=".csv" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:10px;color:#fff;font-size:12px;margin-bottom:10px;cursor:pointer">
           <div style="display:flex;gap:10px">
             <button id="import-save" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Import Vendors</button>
             <button id="import-cancel" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
@@ -2118,53 +2116,67 @@ function bindEvents() {
   const importSave = document.getElementById('import-save');
   if (importSave) {
     importSave.addEventListener('click', () => {
-      if (!state.importData.trim()) return;
+      const fileInput = document.getElementById('import-csv-file');
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        alert('Please select a CSV file');
+        return;
+      }
       
-      const lines = state.importData.trim().split('\n');
-      const newVendors = [];
-      let errors = [];
+      const file = fileInput.files[0];
+      const reader = new FileReader();
       
-      lines.forEach((line, idx) => {
-        if (!line.trim()) return; // skip empty lines
-        const parts = line.split(',').map(p => p.trim());
-        
-        if (parts.length < 6) {
-          errors.push(`Row ${idx + 1}: Missing fields`);
+      reader.onload = (e) => {
+        const csv = e.target.result;
+        if (!csv.trim()) {
+          alert('CSV file is empty');
           return;
         }
         
-        const [name, booth, specialty, type, xStr, yStr, categoriesStr] = parts;
-        const x = parseFloat(xStr);
-        const y = parseFloat(yStr);
+        const lines = csv.trim().split('\n');
+        const newVendors = [];
+        let errors = [];
         
-        if (isNaN(x) || isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
-          errors.push(`Row ${idx + 1}: Invalid X/Y coordinates`);
-          return;
-        }
-        
-        if (!['wing', 'craft', 'nonfood'].includes(type)) {
-          errors.push(`Row ${idx + 1}: Type must be 'wing', 'craft', or 'nonfood'`);
-          return;
-        }
-        
-        // Parse categories - handle both quoted and unquoted
-        let categories = [];
-        if (categoriesStr && categoriesStr !== '""' && categoriesStr.trim()) {
-          categories = categoriesStr
-            .replace(/^"|"$/g, '') // Remove outer quotes if present
-            .split(';')
-            .map(c => c.trim())
-            .filter(c => c && CONTEST_CATS.includes(c));
-        }
-        
-        // For wing vendors with categories, auto-assign them to vote categories
-        // For craft and nonfood, they don't appear in voting
-        const voteCategories = type === 'wing' ? categories : [];
-        
-        newVendors.push({
-          id: Math.max(...state.vendors.map(v => v.id), 0) + newVendors.length + 1,
-          name,
-          booth,
+        lines.forEach((line, idx) => {
+          if (!line.trim()) return; // skip empty lines
+          const parts = line.split(',').map(p => p.trim());
+          
+          if (parts.length < 6) {
+            errors.push(`Row ${idx + 1}: Missing fields`);
+            return;
+          }
+          
+          const [name, booth, specialty, type, xStr, yStr, categoriesStr] = parts;
+          const x = parseFloat(xStr);
+          const y = parseFloat(yStr);
+          
+          if (isNaN(x) || isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
+            errors.push(`Row ${idx + 1}: Invalid X/Y coordinates`);
+            return;
+          }
+          
+          if (!['wing', 'craft', 'nonfood'].includes(type)) {
+            errors.push(`Row ${idx + 1}: Type must be 'wing', 'craft', or 'nonfood'`);
+            return;
+          }
+          
+          // Parse categories - handle both quoted and unquoted
+          let categories = [];
+          if (categoriesStr && categoriesStr !== '""' && categoriesStr.trim()) {
+            categories = categoriesStr
+              .replace(/^"|"$/g, '') // Remove outer quotes if present
+              .split(';')
+              .map(c => c.trim())
+              .filter(c => c && CONTEST_CATS.includes(c));
+          }
+          
+          // For wing vendors with categories, auto-assign them to vote categories
+          // For craft and nonfood, they don't appear in voting
+          const voteCategories = type === 'wing' ? categories : [];
+          
+          newVendors.push({
+            id: Math.max(...state.vendors.map(v => v.id), 0) + newVendors.length + 1,
+            name,
+            booth,
           specialty,
           type,
           loc: { x, y },
@@ -2184,10 +2196,11 @@ function bindEvents() {
       }
       
       state.vendors.push(...newVendors);
-      state.importData = '';
       state.showVendorImport = false;
       render();
       alert(`✓ Imported ${newVendors.length} vendors!\n\nWing vendors added to their vote categories.\nCraft & non-wing food vendors won't appear in voting.`);
+        };
+        reader.readAsText(file);
     });
   }
 
@@ -2195,7 +2208,6 @@ function bindEvents() {
   const importCancel = document.getElementById('import-cancel');
   if (importCancel) {
     importCancel.addEventListener('click', () => {
-      state.importData = '';
       state.showVendorImport = false;
       render();
     });
