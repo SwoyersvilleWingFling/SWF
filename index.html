@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f97316" />
+  <meta name="description" content="Official app for the Swoyersville Chicken Wing Fling — vote, map, apply, and sponsor!" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Wing Fling" />
+  <!-- <link rel="manifest" href="manifest.json" /> -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Firebase Scripts (Compat version for HTML) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <title>Swoyersville Chicken Wing Fling</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #f97316;
+      --orange-light: #fb923c;
+      --red: #dc2626;
+      --bg: #111111;
+      --bg2: #1a1a1a;
+      --bg3: #0d0d0d;
+      --border: #2a2a2a;
+      --text: #ffffff;
+      --muted: #888888;
+      --dim: #555555;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overscroll-behavior-y: none;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--bg);
+      border-bottom: 3px solid var(--orange);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px 0;
+    }
+    .logo-badge {
+      width: 58px; height: 58px;
+      background: #000;
+      border-radius: 50%;
+      border: 3px solid var(--orange);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(249,115,22,0.4);
+    }
+    .header-text { flex: 1; min-width: 0; }
+    .header-sup {
+      font-family: 'Oswald', sans-serif;
+      font-size: 9px; letter-spacing: 4px;
+      color: var(--orange); text-transform: uppercase;
+    }
+    .header-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 22px; color: var(--text);
+      letter-spacing: 0.5px; line-height: 1.1;
+    }
+    .header-title span { color: var(--orange); }
+    .header-date {
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px; color: var(--dim);
+      letter-spacing: 1px; text-align: right;
+      white-space: nowrap;
+    }
+    nav {
+      display: flex;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      background: transparent; border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--muted);
+      padding: 10px 18px;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px; letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-btn:hover { color: var(--orange); }
+    .nav-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 16px 100px;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 24px;
+    }
+    .section-header h2 {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 26px; color: var(--text);
+      white-space: nowrap; letter-spacing: 1px;
+    }
+    .section-header h2 span { color: var(--orange); }
+    .divider-line {
+      flex: 1; height: 2px;
+      background: linear-gradient(90deg, var(--orange), transparent);
+    }
+
+    /* ── VOTE ── */
+    .vote-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .vendor-card {
+      background: var(--bg2);
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      padding: 18px 18px 18px 22px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .vendor-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: var(--orange);
+    }
+    .vendor-card:hover { border-color: var(--orange); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249,115,22,0.2); }
+    .vendor-card.voted { border-color: var(--orange); }
+    .vendor-card.winner { border-color: var(--orange); background: #1e1008; }
+    .vendor-card.done { cursor: default; }
+    .vendor-card.done:hover { transform: none; box-shadow: none; }
+    .winner-badge {
+      position: absolute; top: 10px; right: 10px;
+      background: var(--orange); color: #000;
+      font-family: 'Oswald', sans-serif;
+      font-size: 9px; font-weight: 700;
+      padding: 3px 8px; border-radius: 2px;
+      letter-spacing: 2px;
+    }
+    .card-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .vendor-name { font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); }
+    .vendor-specialty { font-size: 13px; color: var(--orange); margin-top: 3px; }
+    .vendor-booth { font-family: 'Oswald', sans-serif; font-size: 10px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+    .vote-count { font-family: 'Black Han Sans', sans-serif; font-size: 30px; color: var(--orange); text-align: right; }
+    .vote-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; text-align: right; }
+    .vote-btn {
+      margin-top: 14px; width: 100%;
+      background: var(--orange); color: #000;
+      border: none; border-radius: 3px;
+      padding: 10px 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .vote-btn:hover { background: var(--orange-light); }
+    .voted-badge {
+      margin-top: 14px; width: 100%;
+      background: transparent;
+      border: 2px solid var(--orange); color: var(--orange);
+      border-radius: 3px; padding: 8px 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* ── MAP ── */
+    .map-container {
+      background: var(--bg3);
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+    .map-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px; letter-spacing: 4px;
+      color: var(--orange); text-transform: uppercase;
+      text-align: center; margin-bottom: 14px;
+    }
+    .map-canvas {
+      position: relative;
+      background: #141414;
+      border-radius: 4px;
+      height: 800px;
+      border: 1px solid #222;
+      overflow: hidden;
+    }
+    .map-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .stage-label {
+      position: absolute; left: 38%; top: 38%;
+      width: 24%; height: 24%;
+      background: rgba(249,115,22,0.1);
+      border: 2px dashed var(--orange);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px; color: var(--orange);
+      letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+    }
+    .map-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer; z-index: 10;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      pointer-events: auto;
+    }
+    .pin-dot {
+      width: 30px; height: 30px;
+      background: var(--orange);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      border: 3px solid #111;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 10px rgba(249,115,22,0.5);
+      transition: all 0.2s;
+      font-size: 11px;
+    }
+    .pin-dot span { transform: rotate(45deg); display: block; }
+    .pin-dot.hovered { background: #fff; box-shadow: 0 0 20px rgba(249,115,22,0.8); }
+    .pin-label {
+      text-align: center; margin-top: 3px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 8px; color: var(--orange); letter-spacing: 1px;
+    }
+    .pin-tooltip {
+      position: absolute; bottom: 115%; left: 50%;
+      transform: translateX(-50%);
+      background: #000; border: 1px solid var(--orange);
+      color: var(--text); border-radius: 3px;
+      padding: 7px 11px; white-space: nowrap;
+      font-size: 12px; z-index: 30;
+      box-shadow: 0 4px 20px rgba(249,115,22,0.3);
+      pointer-events: none;
+    }
+    .pin-tooltip strong { display: block; font-weight: 600; }
+    .pin-tooltip em { color: var(--orange); font-style: normal; font-size: 11px; }
+    .map-legend {
+      display: flex; flex-wrap: wrap; gap: 8px 16px;
+      justify-content: center; margin-top: 12px;
+    }
+    .legend-item {
+      font-size: 11px; color: var(--dim);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .legend-dot { width: 7px; height: 7px; background: var(--orange); border-radius: 50%; flex-shrink: 0; }
+    .vendor-list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .vendor-list-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-left: 4px solid var(--orange);
+      border-radius: 4px; padding: 13px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .vendor-list-name { font-family: 'Oswald', sans-serif; font-size: 14px; color: var(--text); font-weight: 600; }
+    .vendor-list-spec { font-size: 11px; color: var(--orange); margin-top: 2px; }
+    .booth-tag {
+      background: var(--orange); color: #000;
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px; font-weight: 700;
+      padding: 4px 10px; border-radius: 2px; letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    /* ── SUB TABS ── */
+    .sub-tabs {
+      display: flex; gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 24px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .sub-tabs::-webkit-scrollbar { display: none; }
+    .sub-tab {
+      background: transparent; border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      color: var(--muted); padding: 10px 18px;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px; letter-spacing: 2px;
+      text-transform: uppercase; transition: all 0.2s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .sub-tab:hover { color: var(--orange); }
+    .sub-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+    /* ── FORMS ── */
+    .info-banner {
+      background: var(--bg2); border: 1px solid var(--orange);
+      border-radius: 4px; padding: 13px 16px;
+      margin-bottom: 20px;
+      display: flex; gap: 20px; flex-wrap: wrap;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-item strong { color: var(--orange); font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+    .info-item span { color: var(--text); font-size: 13px; font-weight: 600; }
+
+    .form-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 22px;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .form-input {
+      background: #111; border: 2px solid var(--border);
+      border-radius: 3px; padding: 10px 12px;
+      color: var(--text); font-family: 'Barlow', sans-serif;
+      font-size: 14px; outline: none;
+      transition: border 0.2s; width: 100%;
+    }
+    .form-input:focus { border-color: var(--orange); }
+    .form-input::placeholder { color: #444; }
+    textarea.form-input { resize: vertical; }
+
+    .section-sub {
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px; letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 12px; margin-top: 22px;
+    }
+
+    /* Space selector */
+    .space-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .space-card {
+      background: #111; border: 2px solid var(--border);
+      border-radius: 4px; padding: 13px 14px;
+      cursor: pointer; transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .space-card:hover { border-color: var(--orange); }
+    .space-card.selected { border-color: var(--orange); background: #1e1008; }
+    .space-title { font-family: 'Oswald', sans-serif; font-size: 14px; color: var(--text); font-weight: 700; }
+    .space-fee { color: var(--orange); font-size: 12px; margin-top: 3px; }
+    .space-note { color: var(--dim); font-size: 10px; margin-top: 3px; }
+
+    .toggle-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .toggle-btn {
+      background: #111; border: 2px solid var(--border);
+      border-radius: 3px; padding: 8px 14px;
+      color: var(--muted);
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px; letter-spacing: 1px;
+      cursor: pointer; transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-btn.selected { border-color: var(--orange); color: var(--orange); background: #1e1008; }
+
+    .checkbox-row {
+      display: flex; align-items: center;
+      gap: 10px; margin-top: 10px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .checkbox-box {
+      width: 18px; height: 18px;
+      border: 2px solid #444; border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .checkbox-box.checked { border-color: var(--orange); background: var(--orange); }
+    .checkbox-check { color: #000; font-size: 11px; font-weight: 900; line-height: 1; }
+    .checkbox-label { font-size: 13px; color: #aaa; }
+
+    .contest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .contest-item {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .contest-item span { font-size: 12px; color: #aaa; }
+
+    .submit-btn {
+      width: 100%; margin-top: 22px;
+      background: var(--orange); color: #000;
+      border: none; border-radius: 3px;
+      padding: 14px 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 15px; font-weight: 700;
+      letter-spacing: 4px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .submit-btn:hover { background: var(--orange-light); }
+    .submit-btn:disabled { background: var(--border); color: #444; cursor: not-allowed; }
+    .form-note { text-align: center; color: #444; font-size: 10px; font-family: 'Oswald', sans-serif; letter-spacing: 2px; margin-top: 10px; }
+
+    /* ── SUCCESS ── */
+    .success-card {
+      text-align: center; background: var(--bg2);
+      border: 2px solid var(--orange); border-radius: 4px;
+      padding: 48px 28px;
+    }
+    .success-icon { font-size: 58px; }
+    .success-title {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 28px; color: var(--orange);
+      margin-top: 14px; letter-spacing: 1px;
+    }
+    .success-msg { color: #aaa; font-size: 14px; margin-top: 10px; line-height: 1.7; }
+    .success-msg strong { color: var(--text); }
+    .reset-btn {
+      margin-top: 22px; background: transparent;
+      border: 2px solid var(--orange); color: var(--orange);
+      border-radius: 3px; padding: 10px 26px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px; letter-spacing: 3px;
+      text-transform: uppercase; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover { background: var(--orange); color: #000; }
+
+    /* ── SPONSOR ── */
+    .sponsor-grid { display: flex; flex-direction: column; gap: 10px; }
+    .sponsor-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-left: 5px solid; border-radius: 4px;
+      padding: 14px 18px;
+      display: flex; align-items: flex-start; gap: 14px;
+      cursor: pointer; transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sponsor-card:hover { filter: brightness(1.1); }
+    .sponsor-card.selected-tier { background: #1e1008; outline: 2px solid currentColor; }
+    .sponsor-meta { min-width: 110px; }
+    .sponsor-level { font-family: 'Black Han Sans', sans-serif; font-size: 17px; }
+    .sponsor-price { font-family: 'Oswald', sans-serif; font-size: 12px; color: #aaa; letter-spacing: 1px; margin-top: 1px; }
+    .selected-badge {
+      margin-top: 6px; background: currentColor;
+      font-size: 9px; font-family: 'Oswald', sans-serif;
+      font-weight: 700; letter-spacing: 1px;
+      padding: 2px 8px; border-radius: 2px;
+      display: inline-block;
+    }
+    .selected-badge span { color: #000; }
+    .sponsor-perks { list-style: none; flex: 1; }
+    .sponsor-perks li { font-size: 12px; color: #bbb; padding: 2px 0; }
+    .sponsor-perks li::before { content: '✓ '; color: var(--orange); font-weight: bold; }
+
+    /* ── RULES ── */
+    .rules-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .rules-list li {
+      background: var(--bg2); border: 1px solid #222;
+      border-radius: 3px;
+      padding: 11px 12px 11px 38px;
+      font-size: 13px; color: #bbb;
+      line-height: 1.5; position: relative;
+    }
+    .rules-list li::before {
+      content: attr(data-n);
+      position: absolute; left: 12px; top: 11px;
+      font-family: 'Oswald', sans-serif;
+      color: var(--orange); font-weight: 700; font-size: 11px;
+    }
+
+    .payment-note {
+      background: var(--bg2); border: 1px solid var(--orange);
+      border-radius: 4px; padding: 14px 16px;
+      font-size: 12px; color: #aaa; line-height: 1.7;
+      margin-top: 18px;
+    }
+    .payment-note strong { color: var(--text); }
+    .payment-note .em { color: var(--orange); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #000; border-top: 2px solid #1a1a1a;
+      text-align: center; padding: 18px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px; letter-spacing: 3px;
+      color: #444; text-transform: uppercase;
+    }
+    footer span { color: var(--orange); }
+
+    /* ── INSTALL BANNER ── */
+    #install-banner {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #1a1a1a; border-top: 2px solid var(--orange);
+      padding: 14px 16px;
+      z-index: 500;
+      align-items: center; gap: 12px;
+      font-family: 'Barlow', sans-serif;
+    }
+    #install-banner p { flex: 1; font-size: 13px; color: #ccc; }
+    #install-banner p strong { color: var(--orange); }
+    #install-yes {
+      background: var(--orange); color: #000;
+      border: none; border-radius: 3px;
+      padding: 9px 18px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 2px; cursor: pointer;
+    }
+    #install-no {
+      background: transparent; color: #666;
+      border: 1px solid #444; border-radius: 3px;
+      padding: 9px 14px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px; cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .space-grid { grid-template-columns: 1fr; }
+      .contest-grid { grid-template-columns: 1fr; }
+      .header-date { display: none; }
+      .header-title { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <button id="hidden-admin-btn" class="logo-badge" style="background: #000;border: 3px solid var(--orange);border-radius: 50%;display: flex;align-items: center;justify-content: center;font-size: 26px;flex-shrink: 0;box-shadow: 0 0 20px rgba(249,115,22,0.4);cursor:pointer;width:58px;height:58px;padding:0;-webkit-tap-highlight-color:transparent">🐓</button>
+      <div class="header-text">
+        <div class="header-sup">Swoyersville · Est. 2023</div>
+        <div class="header-title">Chicken Wing <span>Fling</span></div>
+      </div>
+      <div class="header-date">Jul 25–26, 2026<br>Roosevelt Field, PA</div>
+    </div>
+    <nav id="main-nav">
+      <button class="nav-btn active" data-tab="vote">Vote</button>
+      <button class="nav-btn" data-tab="map">Map</button>
+      <!-- <button class="nav-btn" data-tab="apply">Apply</button> -->
+      <button class="nav-btn" data-tab="sponsor">Sponsor</button>
+    </nav>
+  </header>
+
+  <!-- NOTIFICATIONS PANEL -->
+  <div id="notifications-panel" style="display:none;position:fixed;right:0;top:64px;width:100%;max-width:360px;max-height:600px;background:#1a1a1a;border-left:2px solid #f97316;box-shadow:-2px 0 20px rgba(0,0,0,0.5);z-index:150;overflow-y:auto;border-bottom:2px solid #f97316">
+    <div style="padding:16px;border-bottom:1px solid #2a2a2a">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-family:'Black Han Sans',sans-serif;font-size:16px;color:#f97316;margin:0">Submissions</h3>
+        <button id="close-notif" style="background:transparent;border:none;color:#666;font-size:20px;cursor:pointer">×</button>
+      </div>
+      <p style="font-size:12px;color:#666;margin:0">New vendor applications & sponsorships</p>
+    </div>
+    <div id="notif-list" style="padding:0"></div>
+  </div>
+
+  <!-- NOTIFICATION BADGE -->
+  <button id="notif-btn" style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:#f97316;color:#000;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 12px rgba(249,115,22,0.4);z-index:140;display:none;font-weight:700;font-family:sans-serif;transition:all 0.2s">
+    <span id="notif-count">0</span>
+  </button>
+
+  <main id="main"></main>
+
+  <footer>
+    🐓 <span>Swoyersville Chicken Wing Fling</span> · Swoyersville Parks &amp; Recreation Board · NEPA Chicken Wing Bulletin
+  </footer>
+
+  <!-- INSTALL BANNER -->
+  <div id="install-banner">
+    <p>Add <strong>Wing Fling</strong> to your home screen for the best experience!</p>
+    <button id="install-no">Later</button>
+    <button id="install-yes">Install</button>
+  </div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const VENDORS = [
+  { id:1, name:"Smoky's BBQ Shack",   specialty:"Hickory Smoked",   loc:{x:22,y:30}, booth:"A1", categories:["Best Mild","Best Hot"], votes:{}, type:"wing" },
+  { id:2, name:"Fire & Spice Co.",    specialty:"Nashville Hot",     loc:{x:55,y:25}, booth:"B2", categories:["Best Hot","Most Unique"], votes:{}, type:"wing" },
+  { id:3, name:"The Wing Pit",        specialty:"Garlic Parmesan",   loc:{x:75,y:45}, booth:"C3", categories:["Best Boneless Bite","Best Dry Rub"], votes:{}, type:"wing" },
+  { id:4, name:"Buffalo Bill's",      specialty:"Classic Buffalo",   loc:{x:35,y:65}, booth:"D4", categories:["Best Mild","Most Unique"], votes:{}, type:"wing" },
+  { id:5, name:"Sweet Heat Kitchen",  specialty:"Honey Sriracha",    loc:{x:60,y:70}, booth:"E5", categories:["Best Hot","Best Non-Bone Chicken Wing Themed Item"], votes:{}, type:"wing" },
+  { id:6, name:"Crispy Corner",       specialty:"Lemon Pepper",      loc:{x:80,y:20}, booth:"F6", categories:["Best Mild","Best Dry Rub"], votes:{}, type:"wing" },
+  { id:7, name:"Artisan Crafts",      specialty:"Handmade Items",    loc:{x:25,y:50}, booth:"G7", categories:[], votes:{}, type:"craft" },
+  { id:8, name:"Gourmet Pizza Co.",   specialty:"Wood-Fired Pizza",  loc:{x:45,y:40}, booth:"H8", categories:[], votes:{}, type:"nonfood" },
+];
+
+const SPACE_OPTIONS = [
+  { id:"tent10x10", label:"10×10 Craft Tent",       fees:"$80/day · $130/both", hasDays:true,  hasFryer:false },
+  { id:"tent10x20", label:"10×20 Craft Tent",       fees:"$100/day · $150/both",hasDays:true,  hasFryer:false },
+  { id:"foodtent",  label:"Food Tent",               fees:"$225 (two days only)",hasDays:false, hasFryer:true  },
+  { id:"foodtruck", label:"Food Trailer / Food Truck",fees:"$275 (two days only)",hasDays:false,hasFryer:true  },
+];
+
+const CONTEST_CATS = [
+  "Best Mild","Best Hot","Most Unique","Best Boneless Bite",
+  "Best Dry Rub","Best Non-Bone Chicken Wing Themed Item","Best Dessert \"Wings\""
+];
+
+const WF_SPONSORS = [
+  { level:"Mild",        price:"$50",    color:"#facc15", shirt:false, perks:["Name/Business on Event Welcome Sign","Social Media Thank You"] },
+  { level:"Medium",      price:"$100",   color:"#fb923c", shirt:false, perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event T-Shirt"] },
+  { level:"Hot",         price:"$250",   color:"#f97316", shirt:true,  perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event T-Shirt","2026 Event Shirt"] },
+  { level:"Ghost Pepper",price:"$500",   color:"#ef4444", shirt:true,  perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event T-Shirt","2026 Event Shirt & SWF Hat","10×10 Vendor Space"] },
+  { level:"Reaper",      price:"$1,000+",color:"#dc2626", shirt:true,  perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event T-Shirt","2026 Event Shirt & SWF Hat","10×10 Vendor Space","Opportunity to be a 2026 Wing Fling Judge"] },
+];
+
+const FK_SPONSORS = [
+  { level:"Waddle", price:"$50",  color:"#facc15", shirt:false, perks:["Name/Logo on Event Welcome Sign","Social Media Thank You"] },
+  { level:"Strut",  price:"$125", color:"#fb923c", shirt:false, perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event & 5K T-Shirt","5K Race Course Directional Sign (×1)"] },
+  { level:"Trot",   price:"$250", color:"#f97316", shirt:true,  perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event & 5K T-Shirt","2026 Event Shirt & SWF Hat","5K Race Course Directional Sign (×2)"] },
+  { level:"Hustle", price:"$500", color:"#dc2626", shirt:true,  perks:["Name/Business on Event Welcome Sign","Social Media Thank You","Name/Logo on Event & 5K T-Shirt","2026 Event Shirt & SWF Hat","10×10 Vendor Space","5K Race Course Directional Sign (×3)"] },
+];
+
+const SHIRT_SIZES = ["Small","Medium","Large","XLarge","2XLarge","3XLarge"];
+
+const RULES = [
+  "All food vendors must participate in both days. Craft vendors may choose one or two days.",
+  "Vendors must be prepared to set up in a grass field and protect their product from all weather conditions.",
+  "Setup is available Friday evening or Saturday morning. Friday evening is recommended to ease Saturday morning traffic.",
+  "The festival site is secured overnight, but vendors must break down equipment and lock up valuables each night.",
+  "Vendors must provide their own tents, tables, and equipment. Electricity and water are NOT provided.",
+  "Tents must be free-standing and secured with weights, sandbags, or stakes.",
+  "Tents must be made of flame-retardant fabric meeting applicable fire codes.",
+  "All food vendors must have an inspected fire extinguisher tagged within the last 12 months.",
+  "Food vendors must have: PA Health Dept Certificate, ServSafe certificate, Tax ID#, and all necessary licenses.",
+  "Radios or music must only be audible within the vendor's own booth.",
+  "Pedestrian walkways and breaks between vendors must remain clear and open at all times.",
+  "Vendors must fulfill their contract and remain through posted hours — no early breakdown.",
+  "The festival limits similar-product vendors (excluding wing vendors) but cannot guarantee full exclusivity.",
+  "All booths must be kept organized, clean, and appealing to attendees.",
+  "All trash must be picked up and deposited in receptacles at the conclusion of the event.",
+  "At the conclusion of the event, vehicles may not enter the site until you are fully broken down and all patrons have exited.",
+  "Vendor parking must correspond to designated locations — all other areas are reserved for attendees.",
+  "Vendors must be set up one hour before opening and prepared for inspection by the Swoyersville Recreation Board.",
+  "Food vendors must carry $1,000,000 of general liability insurance naming Swoyersville Borough as an additional insured.",
+  "\"Day of Event Logistics\" email will be sent 3 weeks before the festival with arrival times, locations, and directions.",
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const state = {
+  tab: 'vote',
+  vendors: VENDORS.map(v => ({...v, votes: {...v.votes}})),
+  selectedCategory: CONTEST_CATS[0],
+  pendingVotes: {}, // votes user is selecting but haven't submitted (THIS device)
+  userVotes: {}, // THIS device's locked votes (stored in localStorage, not Firebase)
+  
+  // admin map editing
+  adminMode: false,
+  newVendorForm: { name: '', specialty: '', booth: '', x: 50, y: 50, type: 'wing', categories: [] },
+  showNewVendorForm: false,
+  
+  // stage & seating (admin only)
+  stage: { x: 40, y: 40, width: 20, height: 15 }, // stage position and size (% of map)
+  seatingAreas: [], // array of seating areas with x, y, width, height
+  showAddSeatingForm: false,
+  selectedSeatingId: null,
+  editingSeatingId: null, // which seating area is being edited
+  editingStageSize: false,
+  
+  // competition results (admin only)
+  showCompetitionEditor: false,
+  competitionWinners: {}, // stores admin-selected competition winners
+  
+  // vendor filtering
+  vendorFilter: 'all', // 'all', 'wing', 'craft', 'nonfood'
+  selectedVendorId: null,
+  
+  // vendor import
+  showVendorImport: false,
+  importData: '',
+  
+  // admin authentication
+  adminPassword: 'wing2026', // Change this to your password
+  isAuthenticated: false,
+  showPasswordPrompt: false,
+  passwordInput: '',
+  
+  // notifications
+  submissions: JSON.parse(localStorage.getItem('wingfling_submissions') || '[]'),
+  showNotifications: false,
+  
+  // apply
+  applySection: 'vendor',
+  vendorSubmitted: false,
+  selectedSpace: null,
+  selectedDays: [],
+  needsFryer: false,
+  enterContest: null,
+  contestCats: [],
+  sameLocation: null,
+  vendorAgree: false,
+  vForm: { vendorName:'', contactName:'', phone:'', address:'', email:'', menu:'', spaceNeeded:'', wingsVouchers:'' },
+
+  // sponsor
+  sponsorTab: 'wingfling',
+  sponsorSubmitted: false,
+  selectedLevel: null,
+  selectedShirt: null,
+  sponsorAgree: false,
+  sForm: { bizName:'', contact:'', phone:'', email:'', donation:'' },
+};
+
+// ─────────────────────────────────────────────
+// PERSISTENT STORAGE (Firebase + localStorage)
+// ─────────────────────────────────────────────
+
+// Load saved data from Firebase + localStorage
+function loadSavedData() {
+  try {
+    // Load user's personal votes from localStorage
+    const userVotesSaved = localStorage.getItem('userVotes');
+    if (userVotesSaved) {
+      state.userVotes = JSON.parse(userVotesSaved);
+      console.log('✓ Loaded user votes:', state.userVotes);
+    }
+    
+    // Load from Firebase
+    if (typeof window.db !== 'undefined') {
+      window.db.ref('appData').once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.vendors) state.vendors = data.vendors;
+          if (data.seatingAreas) state.seatingAreas = data.seatingAreas;
+          if (data.stage) state.stage = data.stage;
+          console.log('✓ Loaded from Firebase');
+          render(); // Re-render after loading
+        }
+      }).catch(err => console.error('Firebase load error:', err));
+    }
+    
+    // Also load submissions from localStorage
+    const saved = localStorage.getItem('wingfling_data');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.submissions) state.submissions = data.submissions;
+    }
+  } catch (err) {
+    console.error('Error loading saved data:', err);
+  }
+}
+
+// Save data to Firebase + localStorage
+function saveData() {
+  if (!firebaseReady || typeof window.db === 'undefined') return; // Don't save if Firebase isn't ready yet
+  
+  try {
+    // Save shared data to Firebase
+    const dataToSave = {
+      vendors: state.vendors,
+      seatingAreas: state.seatingAreas,
+      stage: state.stage
+    };
+    window.db.ref('appData').set(dataToSave)
+      .catch(err => console.error('Firebase save error:', err));
+    
+    // Save local submissions to localStorage
+    const localData = {
+      submissions: state.submissions
+    };
+    localStorage.setItem('wingfling_data', JSON.stringify(localData));
+  } catch (err) {
+    console.error('Error saving data:', err);
+  }
+}
+
+// Listen for real-time changes from other users
+function setupRealtimeListeners() {
+  if (typeof window.db === 'undefined') return;
+  
+  window.db.ref('appData').on('value', (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      // Update state from Firebase
+      if (data.vendors && JSON.stringify(data.vendors) !== JSON.stringify(state.vendors)) {
+        state.vendors = data.vendors;
+      }
+      if (data.seatingAreas && JSON.stringify(data.seatingAreas) !== JSON.stringify(state.seatingAreas)) {
+        state.seatingAreas = data.seatingAreas;
+      }
+      if (data.stage && JSON.stringify(data.stage) !== JSON.stringify(state.stage)) {
+        state.stage = data.stage;
+      }
+      // Re-render if vendors or seating changed
+      if (JSON.stringify(data.vendors) !== JSON.stringify(state.vendors)) {
+        // Only re-render if we're not currently editing (to avoid interrupting user)
+        if (!state.showAddSeatingForm && !state.editingStageSize && !state.adminMode) {
+          render();
+        }
+      }
+    }
+  });
+}
+
+// These will be called at the end after Firebase initializes
+const main = document.getElementById('main');
+
+let firebaseReady = false;
+
+function render() {
+  switch(state.tab) {
+    case 'vote':    main.innerHTML = renderVote();    break;
+    case 'map':     main.innerHTML = renderMap();     break;
+    // case 'apply':   main.innerHTML = renderApply();   break;
+    case 'sponsor': main.innerHTML = renderSponsor(); break;
+  }
+  bindEvents();
+  if (firebaseReady) saveData(); // Only save after Firebase is ready
+}
+
+// ─────────────────────────────────────────────
+// VOTE
+// ─────────────────────────────────────────────
+function renderVote() {
+  const PEOPLES_CHOICE = "People's Choice";
+  const pendingVote = state.pendingVotes[PEOPLES_CHOICE] || null;
+  const userVote = state.userVotes[PEOPLES_CHOICE] || null;
+  
+  // Show user's locked vote if exists, otherwise pending
+  const currentVote = userVote || pendingVote;
+  
+  // Get all wing vendors for People's Choice voting
+  const wingVendors = state.vendors.filter(v => v.type === 'wing');
+  const sorted = currentVote
+    ? [...wingVendors].sort((a,b) => ((a.votes && a.votes[PEOPLES_CHOICE])||0) - ((b.votes && b.votes[PEOPLES_CHOICE])||0)).reverse()
+    : wingVendors;
+
+  const cards = sorted.map((v,i) => {
+    const voteCount = (v.votes && v.votes[PEOPLES_CHOICE]) || 0;
+    const isWinner = currentVote && i === 0;
+    const isVoted = currentVote === v.id;
+    const isPending = pendingVote === v.id;
+    const isLocked = userVote === v.id;
+    
+    return `
+      <div class="vendor-card${isWinner?' winner':''}${isVoted?' voted':''}${isLocked?' done':''}">
+        ${state.adminMode && isWinner ? '<div class="winner-badge">🏆 LEADING</div>' : ''}
+        <div class="card-row">
+          <div>
+            <div class="vendor-name">${v.name}</div>
+            <div class="vendor-specialty">${v.specialty}</div>
+            <div class="vendor-booth">Booth ${v.booth}</div>
+          </div>
+          ${state.adminMode && currentVote ? `<div><div class="vote-count">${voteCount}</div><div class="vote-label">votes</div></div>` : ''}
+        </div>
+        ${!isLocked ? `<button class="vote-btn" data-voteid="${v.id}">${isPending ? 'Selected ✓' : 'Select'}</button>` : ''}
+        ${isLocked  ? `<div class="voted-badge">✓ Locked In</div>` : ''}
+      </div>`;
+  }).join('');
+
+  const hasPendingInCat = !!pendingVote;
+  const hasUserVote = !!userVote;
+
+  // Competition categories section
+  const competitionCats = CONTEST_CATS.map(cat => {
+    const winnerId = state.competitionWinners[cat] || null;
+    const winnerVendor = winnerId ? state.vendors.find(v => v.id === winnerId) : null;
+    return `
+      <div style="padding:12px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;margin-bottom:8px">
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;color:#f97316;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">${cat}</div>
+        ${winnerVendor 
+          ? `<div style="color:#a0a0a0;font-size:13px">🏆 <strong style="color:#fff">${winnerVendor.name}</strong></div>` 
+          : `<div style="color:#666;font-size:13px">Winner to be announced</div>`}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="section-header"><h2>Cast Your <span>Vote</span></h2><div class="divider-line"></div></div>
+    
+    <div style="margin-bottom:28px">
+      <h3 style="font-family:'Black Han Sans',sans-serif;font-size:20px;color:#f97316;margin-bottom:12px">🏆 People's Choice</h3>
+      <p style="color:#666;font-size:14px;margin-bottom:16px">
+        Vote for your favorite wing vendor! You can change your selection anytime until you lock it in.
+      </p>
+      <div class="vote-grid">${cards}</div>
+      
+      <div style="margin-top:28px;padding:18px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px">
+        <p style="color:#888;font-size:13px;margin-bottom:14px">
+          ${hasUserVote 
+            ? '✓ Your vote is counted! You can change it anytime.' 
+            : hasPendingInCat 
+              ? 'Press "Lock In Vote" to confirm your selection.'
+              : 'Select a vendor above to vote.'}
+        </p>
+        <button class="submit-btn" id="lock-vote-btn" ${!hasPendingInCat ? 'disabled' : ''} style="margin:0;${!hasPendingInCat ? 'opacity:0.5;' : ''}">
+          Lock In Vote
+        </button>
+        ${(hasPendingInCat || hasUserVote) && pendingVote ? `
+          <button id="clear-vote-btn" style="margin-top:10px;width:100%;background:transparent;border:2px solid #666;color:#888;border-radius:3px;padding:10px 0;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer">
+            Clear Selection
+          </button>
+        ` : ''}
+        ${hasUserVote && !pendingVote ? `
+          <button id="change-vote-btn" style="margin-top:10px;width:100%;background:transparent;border:2px solid #f97316;color:#f97316;border-radius:3px;padding:10px 0;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">
+            Change My Vote
+          </button>
+        ` : ''}
+      </div>
+    </div>
+
+    <div style="margin-top:40px;padding-top:28px;border-top:2px solid #2a2a2a">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-family:'Black Han Sans',sans-serif;font-size:18px;color:#fff">🏅 Wing Fling Competition Results</h3>
+        ${state.adminMode ? `<button id="edit-competition-btn" style="background:#f97316;color:#000;border:none;border-radius:3px;padding:6px 12px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">✎ Edit</button>` : ''}
+      </div>
+      <p style="color:#666;font-size:13px;margin-bottom:16px">
+        Winners from the official wing competition categories will be displayed here.
+      </p>
+      
+      ${state.adminMode && state.showCompetitionEditor ? `
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:16px;margin-bottom:16px">
+          <div style="font-family:'Oswald',sans-serif;font-size:11px;color:#f97316;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">Edit Winners</div>
+          ${CONTEST_CATS.map(cat => `
+            <div style="margin-bottom:12px">
+              <label style="font-family:'Oswald',sans-serif;font-size:10px;color:#a0a0a0;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">${cat}</label>
+              <select class="comp-winner-select" data-category="${cat}" style="width:100%;background:#0d0d0d;color:#fff;border:1px solid #2a2a2a;border-radius:3px;padding:8px;font-family:'Barlow',sans-serif;font-size:13px;cursor:pointer">
+                <option value="">-- Select Winner --</option>
+                ${state.vendors.filter(v => v.type === 'wing').map(v => `
+                  <option value="${v.id}" ${state.competitionWinners[cat] === v.id ? 'selected' : ''}>${v.name}</option>
+                `).join('')}
+              </select>
+            </div>
+          `).join('')}
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button id="save-competition-btn" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Save Winners</button>
+            <button id="cancel-competition-btn" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+      
+      ${competitionCats}
+    </div>
+
+    ${state.adminMode ? `
+    <div style="margin-top:40px;padding:20px;background:#1a1a1a;border:2px solid #f97316;border-radius:4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-family:'Black Han Sans',sans-serif;font-size:18px;color:#f97316;margin:0">📊 People's Choice Vote Totals</h3>
+        <button id="reset-votes-btn" style="background:#dc2626;color:#fff;border:none;border-radius:3px;padding:6px 12px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">🔄 Reset Votes</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+        ${state.vendors
+          .filter(v => v.type === 'wing')
+          .sort((a, b) => {
+            const aVotes = (a.votes && a.votes["People's Choice"]) || 0;
+            const bVotes = (b.votes && b.votes["People's Choice"]) || 0;
+            return bVotes - aVotes;
+          })
+          .map((v, idx) => {
+            const voteCount = (v.votes && v.votes["People's Choice"]) || 0;
+            const isLeading = idx === 0 && voteCount > 0;
+            return `
+              <div style="padding:12px;background:${isLeading ? '#1e1008' : '#111'};border:1px solid ${isLeading ? '#f97316' : '#2a2a2a'};border-radius:4px">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+                  <div>
+                    <div style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:#fff">${v.name}</div>
+                    <div style="font-size:11px;color:#888">Booth ${v.booth}</div>
+                  </div>
+                  ${isLeading ? '<div style="color:#f97316;font-size:12px;font-weight:700">🏆 LEADING</div>' : ''}
+                </div>
+                <div style="font-size:18px;font-weight:700;color:#f97316">${voteCount}</div>
+                <div style="font-size:10px;color:#666">votes</div>
+              </div>
+            `;
+          })
+          .join('')}
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+// ─────────────────────────────────────────────
+// MAP
+// ─────────────────────────────────────────────
+function renderMap() {
+  const getColor = (type) => {
+    if (type === 'wing') return '#f97316'; // orange
+    if (type === 'craft') return '#a855f7'; // purple
+    if (type === 'nonfood') return '#3b82f6'; // blue
+    return '#666';
+  };
+
+  // Filter vendors based on current filter
+  const filteredVendors = state.vendorFilter === 'all' 
+    ? state.vendors 
+    : state.vendors.filter(v => v.type === state.vendorFilter);
+
+  const pins = filteredVendors.map(v => {
+    const color = getColor(v.type);
+    const isSelected = state.selectedVendorId === v.id;
+    const size = isSelected ? 45 : 30;
+    const zIndex = isSelected ? 200 : 10;
+    return `
+    <div class="map-pin" style="left:${v.loc.x}%;top:${v.loc.y}%;${state.adminMode?'cursor:move;':'cursor:pointer;'}z-index:${zIndex}" data-pin="${v.id}" data-vendorid="${v.id}">
+      <div class="pin-dot" id="pin-${v.id}" style="user-select:none;background:${color};width:${size}px;height:${size}px;transition:all 0.3s" data-vendorid="${v.id}"><span>${isSelected ? '🍗🍗' : '🍗'}</span></div>
+      <div class="pin-label">${v.booth}</div>
+      <div class="pin-tooltip" id="tip-${v.id}" style="display:none">
+        <strong>${v.name}</strong><em>${v.specialty}</em>
+        <div style="margin-top:4px;font-size:10px;color:#999">${v.type === 'wing' ? '🍗 Wing' : v.type === 'craft' ? '🎨 Craft' : '🍕 Non-Wing Food'}</div>
+        ${state.adminMode ? `<div style="margin-top:6px;font-size:10px;color:#f97316">📍 ${v.loc.x.toFixed(0)}%, ${v.loc.y.toFixed(0)}%</div>` : ''}
+      </div>
+      ${state.adminMode ? `<button class="vendor-delete-btn" data-id="${v.id}" style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:#dc2626;border:none;border-radius:50%;color:#fff;font-size:14px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">×</button>` : ''}
+    </div>`;
+  }).join('');
+
+  const legend = filteredVendors.map(v =>
+    `<div class="legend-item"><span class="legend-dot" style="background:${getColor(v.type)}"></span>${v.booth} – ${v.name}</div>`
+  ).join('');
+
+  const vcards = filteredVendors.map(v => {
+    const typeLabel = v.type === 'wing' ? '🍗 Wing' : v.type === 'craft' ? '🎨 Craft' : '🍕 Non-Wing Food';
+    const isSelected = state.selectedVendorId === v.id;
+    return `
+    <div class="vendor-list-card" style="${isSelected ? 'border-color:#f97316;background:#1e1008' : ''}" data-vendorid="${v.id}">
+      <div>
+        <div class="vendor-list-name">${v.name}</div>
+        <div class="vendor-list-spec">${v.specialty}</div>
+        <div style="font-size:11px;color:#888;margin-top:4px">${typeLabel}</div>
+      </div>
+      <div class="booth-tag">${v.booth}</div>
+    </div>`;
+  }).join('');
+
+  const newVendorSection = state.adminMode && state.isAuthenticated ? `
+    <div style="margin-top:16px;padding:14px;background:#1e1008;border:2px solid #f97316;border-radius:4px">
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <button id="add-vendor-btn" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:10px 0;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">
+          + Add Single Vendor
+        </button>
+        <button id="import-vendors-btn" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:10px 0;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">
+          📥 Import CSV
+        </button>
+        <button id="add-seating-btn" style="flex:1;background:#3b82f6;color:#000;border:none;border-radius:3px;padding:10px 0;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">
+          🪑 Add Seating
+        </button>
+      </div>
+      <div style="padding:12px;background:#0d0d0d;border:1px solid #f97316;border-radius:3px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-family:'Oswald',sans-serif;font-size:10px;color:#f97316;letter-spacing:2px;text-transform:uppercase">🎪 Stage Size</div>
+          <button id="toggle-stage-size" style="background:#f97316;color:#000;border:none;border-radius:3px;padding:4px 12px;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-weight:700">${state.editingStageSize ? '✓ Done' : '✎ Edit'}</button>
+        </div>
+        ${state.editingStageSize ? `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label style="font-size:11px;color:#f97316;display:block;margin-bottom:4px">Width %</label>
+              <input id="stage-width-input" type="number" min="5" max="50" value="${state.stage.width}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:6px;color:#fff;font-size:12px">
+            </div>
+            <div>
+              <label style="font-size:11px;color:#f97316;display:block;margin-bottom:4px">Height %</label>
+              <input id="stage-height-input" type="number" min="5" max="30" value="${state.stage.height}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:6px;color:#fff;font-size:12px">
+            </div>
+          </div>
+        ` : `<div style="font-size:12px;color:#888">Width: ${state.stage.width}% · Height: ${state.stage.height}%</div>`}
+      </div>
+      ${state.showNewVendorForm && !state.showVendorImport ? `
+        <div style="background:#111;border:1px solid #2a2a2a;border-radius:3px;padding:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <input id="nvf-name" type="text" placeholder="Vendor Name" value="${state.newVendorForm.name}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+            <input id="nvf-booth" type="text" placeholder="Booth (e.g. I9)" value="${state.newVendorForm.booth}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+          </div>
+          <input id="nvf-specialty" type="text" placeholder="Specialty" value="${state.newVendorForm.specialty}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:10px">
+          <select id="nvf-type" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:10px">
+            <option value="wing" ${state.newVendorForm.type === 'wing' ? 'selected' : ''}>🍗 Wing Vendor</option>
+            <option value="craft" ${state.newVendorForm.type === 'craft' ? 'selected' : ''}>🎨 Craft Vendor</option>
+            <option value="nonfood" ${state.newVendorForm.type === 'nonfood' ? 'selected' : ''}>🍕 Non-Wing Food</option>
+          </select>
+          ${state.newVendorForm.type === 'wing' ? `
+            <div style="margin-bottom:10px">
+              <label style="font-family:'Oswald',sans-serif;font-size:10px;color:#f97316;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Vote Categories (select up to 3)</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                ${CONTEST_CATS.map(cat => {
+                  const selected = state.newVendorForm.categories.includes(cat);
+                  const disabled = !selected && state.newVendorForm.categories.length >= 3;
+                  return `
+                    <button class="nvf-category-btn" data-cat="${cat}" style="background:${selected ? '#f97316' : '#1a1a1a'};color:${selected ? '#000' : '#f97316'};border:1px solid ${selected ? '#f97316' : '#2a2a2a'};border-radius:3px;padding:6px;font-size:11px;cursor:${disabled && !selected ? 'not-allowed' : 'pointer'};opacity:${disabled && !selected ? '0.5' : '1'};font-family:'Oswald',sans-serif;transition:all 0.2s">${cat}</button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <input id="nvf-x" type="number" min="0" max="100" placeholder="X %" value="${state.newVendorForm.x}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+            <input id="nvf-y" type="number" min="0" max="100" placeholder="Y %" value="${state.newVendorForm.y}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+          </div>
+          <div style="display:flex;gap:10px">
+            <button id="nvf-save" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Save</button>
+            <button id="nvf-cancel" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+      ${state.showVendorImport ? `
+        <div style="background:#111;border:1px solid #2a2a2a;border-radius:3px;padding:12px">
+          <div style="background:#0d0d0d;border:1px solid #222;border-radius:3px;padding:10px;margin-bottom:12px">
+            <p style="color:#888;font-size:11px;line-height:1.6;margin:0 0 10px 0">
+              <strong style="color:#f97316">CSV Format (Wing vendors only):</strong><br>
+              name,booth,specialty,type,x,y,categories<br>
+              <em style="color:#666">• categories = vote contest categories (semicolon separated)</em><br>
+              <em style="color:#666">• Only wing vendors can vote • Craft/Food vendors skip categories</em><br>
+              <em style="color:#666">Example:</em><br>
+              Wings & Things,A1,Buffalo Hot,wing,20,30,"Best Hot;Most Unique"<br>
+              Crafty Co.,B1,Handmade,craft,40,50,""
+            </p>
+          </div>
+          <textarea id="import-csv" placeholder="Paste CSV data here..." style="width:100%;height:150px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:10px;color:#fff;font-size:12px;font-family:monospace;margin-bottom:10px">${state.importData}</textarea>
+          <div style="display:flex;gap:10px">
+            <button id="import-save" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Import Vendors</button>
+            <button id="import-cancel" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+      ${state.showAddSeatingForm ? `
+        <div style="background:#111;border:1px solid #2a2a2a;border-radius:3px;padding:12px;margin-top:12px">
+          <div style="margin-bottom:10px">
+            <label style="font-family:'Oswald',sans-serif;font-size:10px;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">${state.editingSeatingId ? 'Edit Seating Area' : 'Seating Area Name'}</label>
+            <input id="seating-name" type="text" placeholder="e.g. Section A, VIP Seating" value="${state.editingSeatingId ? (state.seatingAreas.find(s => s.id === state.editingSeatingId)?.name || '') : ''}" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px;margin-bottom:10px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <input id="seating-x" type="number" min="0" max="100" placeholder="X %" value="${state.editingSeatingId ? (state.seatingAreas.find(s => s.id === state.editingSeatingId)?.x || 50) : 50}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+            <input id="seating-y" type="number" min="0" max="100" placeholder="Y %" value="${state.editingSeatingId ? (state.seatingAreas.find(s => s.id === state.editingSeatingId)?.y || 50) : 50}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <input id="seating-width" type="number" min="5" max="50" placeholder="Width %" value="${state.editingSeatingId ? (state.seatingAreas.find(s => s.id === state.editingSeatingId)?.width || 15) : 15}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+            <input id="seating-height" type="number" min="5" max="30" placeholder="Height %" value="${state.editingSeatingId ? (state.seatingAreas.find(s => s.id === state.editingSeatingId)?.height || 10) : 10}" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:8px;color:#fff;font-size:13px">
+          </div>
+          <div style="display:flex;gap:10px">
+            <button id="seating-save" style="flex:1;background:#3b82f6;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">${state.editingSeatingId ? 'Update' : 'Save'}</button>
+            <button id="seating-cancel" style="flex:1;background:transparent;color:#3b82f6;border:2px solid #3b82f6;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+          </div>
+        </div>
+      ` : ''}
+      ${state.seatingAreas.length > 0 ? `
+        <div style="margin-top:12px;padding:10px;background:#0d0d0d;border:1px solid #222;border-radius:3px">
+          <div style="font-family:'Oswald',sans-serif;font-size:10px;color:#3b82f6;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Seating Areas (${state.seatingAreas.length})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${state.seatingAreas.map(s => `<div style="padding:8px;background:#111;border:1px solid #222;border-radius:2px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#888" data-seating-list="${s.id}">
+              <div style="flex:1">
+                <div style="color:#3b82f6">🪑 ${s.name}</div>
+                <div style="color:#666;font-size:10px;margin-top:2px">Position: ${s.x.toFixed(0)}%, ${s.y.toFixed(0)}% | Size: ${s.width}% × ${s.height}%</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="seating-edit-btn" data-id="${s.id}" style="background:#3b82f6;color:#000;border:none;border-radius:2px;padding:4px 8px;font-family:'Oswald',sans-serif;font-size:9px;cursor:pointer;font-weight:700">✎ Edit</button>
+                <button class="seating-list-delete" data-id="${s.id}" style="background:#3b82f6;color:#fff;border:none;border-radius:2px;padding:4px 8px;font-family:'Oswald',sans-serif;font-size:9px;cursor:pointer;font-weight:700">×</button>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  ` : '';
+
+  return `
+    <div class="section-header"><h2>Festival <span>Map</span></h2><div class="divider-line"></div></div>
+    ${state.showPasswordPrompt ? `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:300">
+      <div style="background:#1a1a1a;border:2px solid #f97316;border-radius:4px;padding:28px;max-width:280px;text-align:center">
+        <div style="font-size:32px;margin-bottom:14px">🔐</div>
+        <h3 style="font-family:'Black Han Sans',sans-serif;font-size:18px;color:#f97316;margin-bottom:14px">Admin Access</h3>
+        <p style="color:#888;font-size:12px;margin-bottom:16px">Enter password to access admin mode</p>
+        <input id="admin-password-input" type="password" placeholder="Password" value="${state.passwordInput}" style="width:100%;background:#111;border:1px solid #2a2a2a;border-radius:3px;padding:10px;color:#fff;font-size:13px;margin-bottom:12px">
+        <div style="display:flex;gap:10px">
+          <button id="admin-password-submit" style="flex:1;background:#f97316;color:#000;border:none;border-radius:3px;padding:8px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Submit</button>
+          <button id="admin-password-cancel" style="flex:1;background:transparent;color:#f97316;border:2px solid #f97316;border-radius:3px;padding:6px 0;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">Cancel</button>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+    
+    
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="filter-btn${state.vendorFilter === 'all' ? ' active' : ''}" data-filter="all" style="background:${state.vendorFilter === 'all' ? '#f97316' : 'transparent'};color:${state.vendorFilter === 'all' ? '#000' : '#f97316'};border:2px solid #f97316;border-radius:4px;padding:6px 14px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;font-weight:700">All Vendors</button>
+      <button class="filter-btn" data-filter="wing" style="background:${state.vendorFilter === 'wing' ? '#f97316' : 'transparent'};color:${state.vendorFilter === 'wing' ? '#000' : '#f97316'};border:2px solid #f97316;border-radius:4px;padding:6px 14px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;font-weight:700">🍗 Wing</button>
+      <button class="filter-btn" data-filter="craft" style="background:${state.vendorFilter === 'craft' ? '#a855f7' : 'transparent'};color:${state.vendorFilter === 'craft' ? '#000' : '#a855f7'};border:2px solid #a855f7;border-radius:4px;padding:6px 14px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;font-weight:700">🎨 Craft</button>
+      <button class="filter-btn" data-filter="nonfood" style="background:${state.vendorFilter === 'nonfood' ? '#3b82f6' : 'transparent'};color:${state.vendorFilter === 'nonfood' ? '#fff' : '#3b82f6'};border:2px solid #3b82f6;border-radius:4px;padding:6px 14px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;font-weight:700">🍕 Food</button>
+    </div>
+    
+    <div class="map-container">
+      <div class="map-title">🗺 Roosevelt Softball/Football Field — Swoyersville Park</div>
+      <div class="map-canvas" id="map-canvas">
+        <svg opacity="0.15">
+          <line x1="20%" y1="0" x2="20%" y2="100%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+          <line x1="40%" y1="0" x2="40%" y2="100%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+          <line x1="60%" y1="0" x2="60%" y2="100%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+          <line x1="80%" y1="0" x2="80%" y2="100%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+          <line x1="0" y1="25%" x2="100%" y2="25%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+          <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+          <line x1="0" y1="75%" x2="100%" y2="75%" stroke="#f97316" stroke-width="1" stroke-dasharray="4 6"/>
+        </svg>
+        <div class="stage-label" id="stage-element" style="left:${state.stage.x}%;top:${state.stage.y}%;position:absolute;transform:translate(-50%,-50%);${state.adminMode?'cursor:move;':''}width:${state.stage.width}%;height:${state.stage.height}%;background:rgba(249,115,22,0.1);border:2px dashed #f97316;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-size:10px;color:#f97316;letter-spacing:2px;text-transform:uppercase;font-weight:700;z-index:5;-webkit-user-select:none;user-select:none">🎪<br>Stage</div>
+        ${state.seatingAreas.map(seat => `
+          <div class="seating-area" id="seating-${seat.id}" data-seatingid="${seat.id}" style="left:${seat.x}%;top:${seat.y}%;position:absolute;transform:translate(-50%,-50%);${state.adminMode?'cursor:move;':''}width:${seat.width}%;height:${seat.height}%;background:rgba(59,130,246,0.2);border:2px dashed #3b82f6;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:Oswald,sans-serif;font-size:9px;color:#3b82f6;letter-spacing:1px;text-transform:uppercase;font-weight:700;z-index:4;-webkit-user-select:none;user-select:none;padding:4px" title="${seat.name}">🪑 ${seat.name}${state.adminMode ? `<button class="seating-delete" data-id="${seat.id}" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#dc2626;border:none;border-radius:50%;color:#fff;font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;z-index:10">×</button>` : ''}</div>
+        `).join('')}
+        ${pins}
+      </div>
+      ${newVendorSection}
+    </div>
+    <div class="section-header" style="margin-bottom:14px"><h2>All <span>Vendors</span></h2><div class="divider-line"></div></div>
+    <div class="vendor-list-grid">${vcards}</div>`;
+}
+
+// ─────────────────────────────────────────────
+// APPLY
+// ─────────────────────────────────────────────
+function renderApply() {
+  const tabs = `
+    <div class="sub-tabs">
+      <button class="sub-tab${state.applySection==='vendor'?' active':''}" data-asec="vendor">Vendor Application</button>
+      <button class="sub-tab${state.applySection==='rules'?' active':''}" data-asec="rules">Rules &amp; Requirements</button>
+    </div>`;
+
+  if (state.applySection === 'rules') return `
+    <div class="section-header"><h2>Get <span>Involved</span></h2><div class="divider-line"></div></div>
+    ${tabs}
+    <p style="color:#888;font-size:14px;margin-bottom:18px">All vendors must comply with the following. Violations may result in removal from the event.</p>
+    <ul class="rules-list">
+      ${RULES.map((r,i)=>`<li data-n="${i+1}.">${r}</li>`).join('')}
+    </ul>
+    <div class="payment-note">
+      <strong style="color:#f97316;font-family:Oswald,sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase">Payment Agreement</strong><br>
+      If approved, submit fee via check or money order to <strong>"Swoyersville Parks and Recreation Board"</strong>, mailed to 675 Main St, Swoyersville, PA 18704. Payment must arrive within two weeks of acceptance or your spot will be forfeited.
+    </div>`;
+
+  // VENDOR FORM
+  if (state.vendorSubmitted) return `
+    <div class="section-header"><h2>Get <span>Involved</span></h2><div class="divider-line"></div></div>
+    ${tabs}
+    <div class="success-card">
+      <div class="success-icon">🐓</div>
+      <div class="success-title">Application Submitted!</div>
+      <p class="success-msg">Thanks, <strong>${state.vForm.vendorName}</strong>!<br>We'll reach out to <strong>${state.vForm.email}</strong> soon.<br>Please submit your vendor fee within 2 weeks of acceptance.</p>
+      <button class="reset-btn" id="vendor-reset">Submit Another</button>
+    </div>`;
+
+  const sp = state.selectedSpace;
+  const spaceCards = SPACE_OPTIONS.map(o => `
+    <div class="space-card${sp===o.id?' selected':''}" data-space="${o.id}">
+      <div class="space-title">${o.label}</div>
+      <div class="space-fee">${o.fees}</div>
+    </div>`).join('');
+
+  const hasDays = sp && SPACE_OPTIONS.find(o=>o.id===sp)?.hasDays;
+  const hasFryer = sp && SPACE_OPTIONS.find(o=>o.id===sp)?.hasFryer;
+  const isWingVendor = sp === 'foodtent' || sp === 'foodtruck';
+
+  const daysBtns = hasDays ? `
+    <div style="margin-bottom:16px">
+      <div class="form-label" style="margin-bottom:6px">Select Day(s)</div>
+      <div class="toggle-row">
+        ${['Saturday 7/25','Sunday 7/26','Both Days'].map(d=>`
+          <button class="toggle-btn${state.selectedDays.includes(d)?' selected':''}" data-day="${d}">${d}</button>`).join('')}
+      </div>
+    </div>` : '';
+
+  const fryerRow = hasFryer ? `
+    <div class="checkbox-row" id="fryer-row" style="margin-bottom:16px">
+      <div class="checkbox-box${state.needsFryer?' checked':''}">
+        ${state.needsFryer?'<span class="checkbox-check">✓</span>':''}
+      </div>
+      <span class="checkbox-label">Needs use of Swoyersville's fryer (no additional fee)</span>
+    </div>` : '';
+
+  const contestSection = isWingVendor ? `
+    <div class="section-sub">Chicken Wing Vendor Details</div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label">Wing Vouchers to Donate</label>
+        <input class="form-input" id="vf-vouchers" placeholder="e.g. 6" value="${state.vForm.wingsVouchers}">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Enter Wing Contest?</label>
+        <div class="toggle-row" style="margin-top:0">
+          <button class="toggle-btn${state.enterContest==='Yes'?' selected':''}" data-contest="Yes">Yes</button>
+          <button class="toggle-btn${state.enterContest==='No'?' selected':''}" data-contest="No">No</button>
+        </div>
+      </div>
+    </div>
+    ${state.enterContest==='Yes' ? `
+      <div style="margin-top:12px">
+        <div class="form-label" style="margin-bottom:6px">Contest Categories (choose up to 3)</div>
+        <div class="contest-grid">
+          ${CONTEST_CATS.map(c=>{
+            const sel = state.contestCats.includes(c);
+            const disabled = !sel && state.contestCats.length>=3;
+            return `<div class="contest-item${disabled?' opacity-50':''}" data-cat="${c}" style="${disabled?'opacity:.4':''}">
+              <div class="checkbox-box${sel?' checked':''}">
+                ${sel?'<span class="checkbox-check">✓</span>':''}
+              </div>
+              <span style="font-size:12px;color:#aaa">${c}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <p style="font-size:11px;color:#555;margin-top:8px;font-style:italic">Contest: Saturday 7/25. Prepare 7 wings per category. All wing vendors automatically enter People's Choice.</p>
+      </div>` : ''}
+  ` : '';
+
+  return `
+    <div class="section-header"><h2>Get <span>Involved</span></h2><div class="divider-line"></div></div>
+    ${tabs}
+    <div class="info-banner">
+      <div class="info-item"><strong>Event Date</strong><span>Jul 25–26, 2026</span></div>
+      <div class="info-item"><strong>Hours</strong><span>11am – 7pm</span></div>
+      <div class="info-item"><strong>Location</strong><span>Roosevelt Field</span></div>
+      <div class="info-item"><strong>Deadline</strong><span>May 31, 2026</span></div>
+    </div>
+    <div class="form-card">
+      <div class="section-sub" style="margin-top:0">Contact Information</div>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">Vendor / Business Name *</label>
+          <input class="form-input" id="vf-vendorName" placeholder="Wing Heaven LLC" value="${state.vForm.vendorName}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Contact Person *</label>
+          <input class="form-input" id="vf-contactName" placeholder="Jane Smith" value="${state.vForm.contactName}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone</label>
+          <input class="form-input" id="vf-phone" placeholder="(570) 555-0100" value="${state.vForm.phone}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Address</label>
+          <input class="form-input" id="vf-address" placeholder="123 Main St" value="${state.vForm.address}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email *</label>
+          <input class="form-input" id="vf-email" placeholder="jane@example.com" value="${state.vForm.email}">
+        </div>
+      </div>
+
+      <div class="section-sub">Equipment &amp; Space Required *</div>
+      <div class="space-grid">${spaceCards}</div>
+      ${daysBtns}
+      ${fryerRow}
+
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">Food Menu Description</label>
+          <textarea class="form-input" id="vf-menu" rows="3" placeholder="List your wing flavors and other items…">${state.vForm.menu}</textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Total Space Needed</label>
+          <input class="form-input" id="vf-spaceNeeded" placeholder="e.g. 10×20 ft" value="${state.vForm.spaceNeeded}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Same Location as 2025?</label>
+          <div class="toggle-row" style="margin-top:0">
+            <button class="toggle-btn${state.sameLocation==='Yes'?' selected':''}" data-loc="Yes">Yes</button>
+            <button class="toggle-btn${state.sameLocation==='No'?' selected':''}" data-loc="No">No</button>
+          </div>
+        </div>
+      </div>
+
+      ${contestSection}
+
+      <p style="font-size:11px;color:#555;margin-top:18px;line-height:1.6;border-top:1px solid #222;padding-top:14px">
+        By submitting, you agree to pay via check/money order to <strong style="color:#aaa">"Swoyersville Parks and Recreation Board"</strong> within 2 weeks of acceptance.
+        Mail to: 675 Main St, Swoyersville, PA 18704. Food vendors must provide $1M general liability insurance naming Swoyersville Borough as additional insured.
+      </p>
+
+      <div class="checkbox-row" id="vendor-terms" style="margin-top:16px;margin-bottom:16px;background:#1e1008;padding:12px;border-radius:4px;border:1px solid #f97316">
+        <div class="checkbox-box">
+          <input type="checkbox" id="vendor-agree" style="width:18px;height:18px;cursor:pointer">
+        </div>
+        <label for="vendor-agree" class="checkbox-label" style="color:#f97316;font-size:12px;cursor:pointer">
+          I have read and agree to the rules, requirements, and payment terms above
+        </label>
+      </div>
+
+      <button class="submit-btn" id="vendor-submit" disabled style="margin:0">
+        Submit Application
+      </button>
+      <p class="form-note">* REQUIRED FIELDS · DUE MAY 31, 2026</p>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// SPONSOR
+// ─────────────────────────────────────────────
+function renderSponsor() {
+  const tiers = state.sponsorTab === 'wingfling' ? WF_SPONSORS : FK_SPONSORS;
+  const selectedTier = tiers.find(t => t.level === state.selectedLevel);
+  const needsShirt = selectedTier?.shirt;
+
+  const tierCards = tiers.map(s => {
+    const isSel = state.selectedLevel === s.level;
+    return `
+      <div class="sponsor-card${isSel?' selected-tier':''}" style="border-left-color:${s.color};color:${s.color}" data-tier="${s.level}">
+        <div class="sponsor-meta">
+          <div class="sponsor-level" style="color:${s.color}">${s.level}</div>
+          <div class="sponsor-price">${s.price}</div>
+          ${isSel?`<div class="selected-badge"><span>SELECTED</span></div>`:''}
+        </div>
+        <ul class="sponsor-perks">${s.perks.map(p=>`<li>${p}</li>`).join('')}</ul>
+      </div>`;
+  }).join('');
+
+  if (state.sponsorSubmitted) return `
+    <div class="section-header"><h2>Become a <span>Sponsor</span></h2><div class="divider-line"></div></div>
+    <div class="success-card">
+      <div class="success-icon">${state.sponsorTab==='fivek'?'🏃':'🐓'}</div>
+      <div class="success-title">Thank You!</div>
+      <p class="success-msg">
+        Thanks, <strong>${state.sForm.bizName}</strong>!<br>
+        Your <strong>${state.selectedLevel}</strong> sponsorship for the ${state.sponsorTab==='fivek'?'5K Run/Walk':'Wing Fling'} has been received.<br>
+        We'll follow up at <strong>${state.sForm.email}</strong> with next steps.
+      </p>
+      <button class="reset-btn" id="sponsor-reset">Submit Another</button>
+    </div>`;
+
+  const shirtPicker = needsShirt ? `
+    <div class="form-field full">
+      <label class="form-label">Event Shirt Size</label>
+      <div class="toggle-row">
+        ${SHIRT_SIZES.map(sz=>`<button class="toggle-btn${state.selectedShirt===sz?' selected':''}" data-shirt="${sz}">${sz}</button>`).join('')}
+      </div>
+      <p style="font-size:11px;color:#555;margin-top:6px;font-style:italic">Pick up at the concession stand during the festival.</p>
+    </div>` : '';
+
+  return `
+    <div class="section-header"><h2>Become a <span>Sponsor</span></h2><div class="divider-line"></div></div>
+    <p style="color:#888;font-size:14px;margin-bottom:22px;line-height:1.7">
+      Your support funds local parks and grows this community tradition. Choose which event you'd like to sponsor.
+    </p>
+    <div class="sub-tabs">
+      <button class="sub-tab${state.sponsorTab==='wingfling'?' active':''}" data-stab="wingfling">🍗 Wing Fling</button>
+      <button class="sub-tab${state.sponsorTab==='fivek'?' active':''}" data-stab="fivek">🏃 5K Run/Walk</button>
+    </div>
+
+    <div class="sponsor-grid" style="margin-bottom:22px">${tierCards}</div>
+    ${state.sponsorTab==='wingfling'?'<p style="color:#555;font-size:12px;margin-bottom:18px;font-style:italic">* Wing Fling Judges may not have any affiliation with vendors or competitors in the competition.</p>':''}
+
+    <div class="form-card">
+      <div class="section-sub" style="margin-top:0">Your Information</div>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">Sponsor / Business Name *</label>
+          <input class="form-input" id="sf-bizName" placeholder="ACME Corp" value="${state.sForm.bizName}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Contact Person *</label>
+          <input class="form-input" id="sf-contact" placeholder="Jane Smith" value="${state.sForm.contact}">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Phone</label>
+          <input class="form-input" id="sf-phone" placeholder="(570) 555-0100" value="${state.sForm.phone}">
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Email *</label>
+          <input class="form-input" id="sf-email" placeholder="jane@example.com" value="${state.sForm.email}">
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Sponsorship Level *</label>
+          <div class="toggle-row">
+            ${tiers.map(s=>`<button class="toggle-btn${state.selectedLevel===s.level?' selected':''}" data-tier="${s.level}">${s.level} — ${s.price}</button>`).join('')}
+          </div>
+        </div>
+        ${shirtPicker}
+        <div class="form-field full">
+          <label class="form-label">Donations in Kind (optional)</label>
+          <input class="form-input" id="sf-donation" placeholder="e.g. water bottles, cups, towels…" value="${state.sForm.donation}">
+          <p style="font-size:11px;color:#555;margin-top:4px">In-kind donations recognized at corresponding sponsorship level.</p>
+        </div>
+      </div>
+      <div style="margin-top:18px;background:#111;border:1px solid #2a2a2a;border-radius:4px;padding:12px 14px;font-size:12px;color:#666;line-height:1.7">
+        📧 Send business logo to <span style="color:#f97316">swoyersvillechickenwingfling@gmail.com</span> by <strong style="color:#aaa">May 31, 2026</strong>.<br>
+        💳 Mail check/money order payable to <strong style="color:#aaa">"Swoyersville Parks and Recreation Board"</strong> · 675 Main St, Swoyersville, PA 18704.
+      </div>
+
+      <div class="checkbox-row" id="sponsor-terms" style="margin-top:16px;margin-bottom:16px;background:#1e1008;padding:12px;border-radius:4px;border:1px solid #f97316">
+        <div class="checkbox-box">
+          <input type="checkbox" id="sponsor-agree" style="width:18px;height:18px;cursor:pointer">
+        </div>
+        <label for="sponsor-agree" class="checkbox-label" style="color:#f97316;font-size:12px;cursor:pointer">
+          I understand the sponsorship requirements and payment terms
+        </label>
+      </div>
+
+      <button class="submit-btn" id="sponsor-submit" disabled style="margin:0">
+        Submit Sponsorship
+      </button>
+      <p class="form-note">* REQUIRED FIELDS · DUE MAY 31, 2026</p>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// EVENT BINDING
+// ─────────────────────────────────────────────
+function bindEvents() {
+  // ── VOTE (SET PENDING) ──
+  document.querySelectorAll('[data-voteid]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const cat = "People's Choice";
+      // Allow changing vote anytime
+      const id = +el.dataset.voteid;
+      state.pendingVotes[cat] = id;
+      render();
+    });
+  });
+
+  // ── LOCK VOTE ──
+  const lockBtn = document.getElementById('lock-vote-btn');
+  if (lockBtn) {
+    lockBtn.addEventListener('click', () => {
+      const cat = "People's Choice";
+      const pendingId = state.pendingVotes[cat];
+      console.log('Lock vote clicked. Pending ID:', pendingId, 'Category:', cat);
+      if (!pendingId) {
+        console.log('No pending vote to lock');
+        return;
+      }
+      
+      // Check if user already voted - if so, remove old vote count
+      const oldVoteId = state.userVotes[cat];
+      if (oldVoteId && oldVoteId !== pendingId) {
+        state.vendors = state.vendors.map(v =>
+          v.id === oldVoteId
+            ? {...v, votes: {...(v.votes || {}), [cat]: Math.max(0, ((v.votes && v.votes[cat]) || 0) - 1)}}
+            : v
+        );
+      }
+      
+      // Lock this user's vote locally
+      state.userVotes[cat] = pendingId;
+      localStorage.setItem('userVotes', JSON.stringify(state.userVotes));
+      console.log('User vote saved:', state.userVotes);
+      
+      // Increment vote count for new choice
+      state.vendors = state.vendors.map(v => 
+        v.id === pendingId
+          ? {...v, votes: {...(v.votes || {}), [cat]: ((v.votes && v.votes[cat])||0)+1}}
+          : v
+      );
+      console.log('Vote count updated:', state.vendors);
+      
+      // Clear pending vote for this category
+      state.pendingVotes[cat] = null;
+      
+      render();
+    });
+  }
+
+  // ── CLEAR VOTE ──
+  const clearBtn = document.getElementById('clear-vote-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      const cat = "People's Choice";
+      state.pendingVotes[cat] = null;
+      render();
+    });
+  }
+
+  // ── CHANGE VOTE ──
+  const changeVoteBtn = document.getElementById('change-vote-btn');
+  if (changeVoteBtn) {
+    changeVoteBtn.addEventListener('click', () => {
+      const cat = "People's Choice";
+      // Clear current vote to allow selecting a new one
+      state.pendingVotes[cat] = null;
+      render();
+    });
+  }
+
+  // ── COMPETITION RESULTS EDITOR ──
+  const editCompBtn = document.getElementById('edit-competition-btn');
+  if (editCompBtn) {
+    editCompBtn.addEventListener('click', () => {
+      state.showCompetitionEditor = !state.showCompetitionEditor;
+      render();
+    });
+  }
+
+  const saveCompBtn = document.getElementById('save-competition-btn');
+  if (saveCompBtn) {
+    saveCompBtn.addEventListener('click', () => {
+      // Get all selected winners from the selects
+      document.querySelectorAll('.comp-winner-select').forEach(select => {
+        const cat = select.dataset.category;
+        const winnerId = +select.value || null;
+        if (winnerId) {
+          state.competitionWinners[cat] = winnerId;
+        } else {
+          delete state.competitionWinners[cat];
+        }
+      });
+      state.showCompetitionEditor = false;
+      render();
+    });
+  }
+
+  const cancelCompBtn = document.getElementById('cancel-competition-btn');
+  if (cancelCompBtn) {
+    cancelCompBtn.addEventListener('click', () => {
+      state.showCompetitionEditor = false;
+      render();
+    });
+  }
+
+  // ── RESET VOTES (ADMIN ONLY) ──
+  const resetVotesBtn = document.getElementById('reset-votes-btn');
+  if (resetVotesBtn) {
+    resetVotesBtn.addEventListener('click', () => {
+      const confirmed = confirm('⚠️ This will reset ALL vote counts to 0 and clear all user votes. Are you sure?');
+      if (confirmed) {
+        // Reset vote counts for all vendors
+        state.vendors = state.vendors.map(v => ({
+          ...v,
+          votes: {...v.votes, "People's Choice": 0}
+        }));
+        
+        // Clear all user votes from localStorage
+        localStorage.removeItem('userVotes');
+        state.userVotes = {};
+        
+        // Clear pending votes
+        state.pendingVotes = {};
+        
+        console.log('✓ All votes reset to 0');
+        render();
+      }
+    });
+  }
+
+  // ── FILTER BUTTONS ──
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.vendorFilter = btn.dataset.filter;
+      state.selectedVendorId = null;
+      render();
+    });
+  });
+
+  // ── VENDOR SELECTION FROM MAP ──
+  document.querySelectorAll('[data-pin]').forEach(el => {
+    const id = el.dataset.pin;
+    const tip = document.getElementById(`tip-${id}`);
+    const dot = document.getElementById(`pin-${id}`);
+    
+    el.addEventListener('mouseenter', () => { 
+      if(tip && !state.adminMode) tip.style.display='block'; 
+      if(dot) dot.classList.add('hovered'); 
+    });
+    el.addEventListener('mouseleave', () => { 
+      if(tip) tip.style.display='none'; 
+      if(dot) dot.classList.remove('hovered'); 
+    });
+    el.addEventListener('click', (e) => {
+      if (state.adminMode) return;
+      e.stopPropagation();
+      const vendorId = +id;
+      state.selectedVendorId = state.selectedVendorId === vendorId ? null : vendorId;
+      render();
+    });
+
+    // Drag in admin mode - both mouse and touch
+    const startDrag = (e) => {
+      if (!state.adminMode || !state.isAuthenticated) return;
+      if (e.target.classList.contains('vendor-delete-btn')) return;
+      
+      e.preventDefault();
+      const vendorId = +el.dataset.vendorid;
+      const mapCanvas = document.getElementById('map-canvas');
+      const rect = mapCanvas.getBoundingClientRect();
+      el.style.opacity = '0.6';
+      el.style.zIndex = '100';
+      
+      const move = (ev) => {
+        let clientX, clientY;
+        if (ev.touches) {
+          clientX = ev.touches[0].clientX;
+          clientY = ev.touches[0].clientY;
+        } else {
+          clientX = ev.clientX;
+          clientY = ev.clientY;
+        }
+        
+        const x = ((clientX - rect.left) / rect.width) * 100;
+        const y = ((clientY - rect.top) / rect.height) * 100;
+        el.style.left = Math.max(0, Math.min(100, x)) + '%';
+        el.style.top = Math.max(0, Math.min(100, y)) + '%';
+      };
+      
+      const stop = () => {
+        el.style.opacity = '1';
+        el.style.zIndex = '10';
+        const x = Math.max(0, Math.min(100, parseFloat(el.style.left)));
+        const y = Math.max(0, Math.min(100, parseFloat(el.style.top)));
+        state.vendors = state.vendors.map(v => v.id === vendorId ? {...v, loc: {x, y}} : v);
+        render();
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('touchmove', move);
+        document.removeEventListener('mouseup', stop);
+        document.removeEventListener('touchend', stop);
+      };
+      
+      document.addEventListener('mousemove', move);
+      document.addEventListener('touchmove', move, { passive: false });
+      document.addEventListener('mouseup', stop);
+      document.addEventListener('touchend', stop);
+    };
+    
+    el.addEventListener('mousedown', startDrag);
+    el.addEventListener('touchstart', startDrag, { passive: false });
+  });
+
+  // ── VENDOR SELECTION FROM LIST ──
+  document.querySelectorAll('.vendor-list-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.filter-btn')) return; // Don't select if clicking filter
+      const vendorId = +card.dataset.vendorid;
+      state.selectedVendorId = state.selectedVendorId === vendorId ? null : vendorId;
+      render();
+    });
+  });
+
+  // ── DELETE VENDOR ──
+  document.querySelectorAll('.vendor-delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = +btn.dataset.id;
+      state.vendors = state.vendors.filter(v => v.id !== id);
+      render();
+    });
+  });
+
+  // ── STAGE DRAG ──
+  const stageEl = document.getElementById('stage-element');
+  if (stageEl && state.adminMode && state.isAuthenticated) {
+    const dragStage = (e) => {
+      if (!state.adminMode) return;
+      e.preventDefault();
+      const mapCanvas = document.getElementById('map-canvas');
+      const rect = mapCanvas.getBoundingClientRect();
+      stageEl.style.opacity = '0.6';
+      stageEl.style.zIndex = '50';
+      
+      const move = (ev) => {
+        let clientX, clientY;
+        if (ev.touches) {
+          clientX = ev.touches[0].clientX;
+          clientY = ev.touches[0].clientY;
+        } else {
+          clientX = ev.clientX;
+          clientY = ev.clientY;
+        }
+        const x = ((clientX - rect.left) / rect.width) * 100;
+        const y = ((clientY - rect.top) / rect.height) * 100;
+        stageEl.style.left = Math.max(0, Math.min(100, x)) + '%';
+        stageEl.style.top = Math.max(0, Math.min(100, y)) + '%';
+      };
+      
+      const stop = () => {
+        stageEl.style.opacity = '1';
+        stageEl.style.zIndex = '5';
+        const x = Math.max(0, Math.min(100, parseFloat(stageEl.style.left)));
+        const y = Math.max(0, Math.min(100, parseFloat(stageEl.style.top)));
+        state.stage = {...state.stage, x, y}; // Keep width and height!
+        render();
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('touchmove', move);
+        document.removeEventListener('mouseup', stop);
+        document.removeEventListener('touchend', stop);
+      };
+      
+      document.addEventListener('mousemove', move);
+      document.addEventListener('touchmove', move, { passive: false });
+      document.addEventListener('mouseup', stop);
+      document.addEventListener('touchend', stop);
+    };
+    stageEl.addEventListener('mousedown', dragStage);
+    stageEl.addEventListener('touchstart', dragStage, { passive: false });
+  }
+
+  // ── SEATING DRAG ──
+  document.querySelectorAll('.seating-area').forEach(seatEl => {
+    if (state.adminMode && state.isAuthenticated) {
+      const dragSeating = (e) => {
+        if (!state.adminMode) return;
+        if (e.target.classList.contains('seating-delete')) return;
+        e.preventDefault();
+        const seatId = seatEl.dataset.seatingid;
+        const mapCanvas = document.getElementById('map-canvas');
+        const rect = mapCanvas.getBoundingClientRect();
+        seatEl.style.opacity = '0.6';
+        seatEl.style.zIndex = '50';
+        
+        const move = (ev) => {
+          let clientX, clientY;
+          if (ev.touches) {
+            clientX = ev.touches[0].clientX;
+            clientY = ev.touches[0].clientY;
+          } else {
+            clientX = ev.clientX;
+            clientY = ev.clientY;
+          }
+          const x = ((clientX - rect.left) / rect.width) * 100;
+          const y = ((clientY - rect.top) / rect.height) * 100;
+          seatEl.style.left = Math.max(0, Math.min(100, x)) + '%';
+          seatEl.style.top = Math.max(0, Math.min(100, y)) + '%';
+        };
+        
+        const stop = () => {
+          seatEl.style.opacity = '1';
+          seatEl.style.zIndex = '4';
+          const x = Math.max(0, Math.min(100, parseFloat(seatEl.style.left)));
+          const y = Math.max(0, Math.min(100, parseFloat(seatEl.style.top)));
+          state.seatingAreas = state.seatingAreas.map(s => s.id === seatId ? {...s, x, y} : s);
+          render();
+          document.removeEventListener('mousemove', move);
+          document.removeEventListener('touchmove', move);
+          document.removeEventListener('mouseup', stop);
+          document.removeEventListener('touchend', stop);
+        };
+        
+        document.addEventListener('mousemove', move);
+        document.addEventListener('touchmove', move, { passive: false });
+        document.addEventListener('mouseup', stop);
+        document.addEventListener('touchend', stop);
+      };
+      seatEl.addEventListener('mousedown', dragSeating);
+      seatEl.addEventListener('touchstart', dragSeating, { passive: false });
+    }
+  });
+
+  // ── DELETE SEATING ──
+  document.querySelectorAll('.seating-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      state.seatingAreas = state.seatingAreas.filter(s => s.id !== id);
+      render();
+    });
+  });
+
+  // ── EDIT SEATING (from list) ──
+  document.querySelectorAll('.seating-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      state.editingSeatingId = id;
+      state.showAddSeatingForm = true;
+      render();
+    });
+  });
+
+  // ── DELETE SEATING (from list) ──
+  document.querySelectorAll('.seating-list-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      state.seatingAreas = state.seatingAreas.filter(s => s.id !== id);
+      render();
+    });
+  });
+
+  // ── ADMIN MODE BUTTON ──
+  // ── ADMIN MODE BUTTON (HIDDEN AS CHICKEN LOGO) ──
+  const hiddenAdminBtn = document.getElementById('hidden-admin-btn');
+  if (hiddenAdminBtn) {
+    hiddenAdminBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (state.adminMode) {
+        // Exit admin mode
+        state.adminMode = false;
+        state.showNewVendorForm = false;
+        state.showVendorImport = false;
+        render();
+      } else if (state.isAuthenticated) {
+        // Already authenticated, just toggle
+        state.adminMode = !state.adminMode;
+        state.showNewVendorForm = false;
+        state.showVendorImport = false;
+        render();
+      } else {
+        // Need password
+        state.showPasswordPrompt = true;
+        state.passwordInput = '';
+        render();
+      }
+    });
+  }
+
+  const adminBtn = document.getElementById('admin-mode-btn');
+  if (adminBtn) {
+    adminBtn.addEventListener('click', () => {
+      if (state.adminMode) {
+        // Exit admin mode
+        state.adminMode = false;
+        state.showNewVendorForm = false;
+        state.showVendorImport = false;
+        render();
+      } else if (state.isAuthenticated) {
+        // Already authenticated, just toggle
+        state.adminMode = !state.adminMode;
+        state.showNewVendorForm = false;
+        state.showVendorImport = false;
+        render();
+      } else {
+        // Need password
+        state.showPasswordPrompt = true;
+        state.passwordInput = '';
+        render();
+      }
+    });
+  }
+
+  // ── PASSWORD INPUT ──
+  const passwordInput = document.getElementById('admin-password-input');
+  if (passwordInput) {
+    passwordInput.addEventListener('input', (e) => {
+      state.passwordInput = e.target.value;
+    });
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        checkPassword();
+      }
+    });
+  }
+
+  // ── PASSWORD SUBMIT ──
+  const passwordSubmit = document.getElementById('admin-password-submit');
+  if (passwordSubmit) {
+    passwordSubmit.addEventListener('click', checkPassword);
+  }
+
+  function checkPassword() {
+    if (state.passwordInput === state.adminPassword) {
+      state.isAuthenticated = true;
+      state.adminMode = true;
+      state.showPasswordPrompt = false;
+      state.passwordInput = '';
+      render();
+    } else {
+      alert('❌ Incorrect password');
+      state.passwordInput = '';
+      render();
+    }
+  }
+
+  // ── PASSWORD CANCEL ──
+  const passwordCancel = document.getElementById('admin-password-cancel');
+  if (passwordCancel) {
+    passwordCancel.addEventListener('click', () => {
+      state.showPasswordPrompt = false;
+      state.passwordInput = '';
+      render();
+    });
+  }
+
+  // ── ADD VENDOR BUTTON ──
+  const addVendorBtn = document.getElementById('add-vendor-btn');
+  if (addVendorBtn) {
+    addVendorBtn.addEventListener('click', () => {
+      state.showNewVendorForm = !state.showNewVendorForm;
+      state.showVendorImport = false;
+      render();
+    });
+  }
+
+  // ── IMPORT VENDORS BUTTON ──
+  const importBtn = document.getElementById('import-vendors-btn');
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
+      state.showVendorImport = !state.showVendorImport;
+      state.showNewVendorForm = false;
+      state.showAddSeatingForm = false;
+      render();
+    });
+  }
+
+  // ── ADD SEATING BUTTON ──
+  const addSeatingBtn = document.getElementById('add-seating-btn');
+  if (addSeatingBtn) {
+    addSeatingBtn.addEventListener('click', () => {
+      state.showAddSeatingForm = !state.showAddSeatingForm;
+      state.showNewVendorForm = false;
+      state.showVendorImport = false;
+      render();
+    });
+  }
+
+  // ── SEATING FORM INPUTS ──
+  const seatingNameInput = document.getElementById('seating-name');
+  const seatingXInput = document.getElementById('seating-x');
+  const seatingYInput = document.getElementById('seating-y');
+
+  // ── SEATING SAVE ──
+  const seatingSave = document.getElementById('seating-save');
+  if (seatingSave) {
+    seatingSave.addEventListener('click', () => {
+      const name = seatingNameInput?.value?.trim();
+      const x = parseFloat(seatingXInput?.value) || 50;
+      const y = parseFloat(seatingYInput?.value) || 50;
+      const width = parseFloat(document.getElementById('seating-width')?.value) || 15;
+      const height = parseFloat(document.getElementById('seating-height')?.value) || 10;
+      
+      if (!name) {
+        alert('Please enter a seating area name');
+        return;
+      }
+      
+      if (x < 0 || x > 100 || y < 0 || y > 100) {
+        alert('Coordinates must be between 0 and 100');
+        return;
+      }
+      
+      if (state.editingSeatingId) {
+        // Update existing seating area
+        state.seatingAreas = state.seatingAreas.map(s => 
+          s.id === state.editingSeatingId 
+            ? {...s, name, x, y, width, height}
+            : s
+        );
+        const seatName = name;
+        state.editingSeatingId = null;
+        state.showAddSeatingForm = false;
+        render();
+        alert(`✓ Updated seating area: ${seatName}!`);
+      } else {
+        // Create new seating area
+        const newSeating = {
+          id: 'seat-' + Date.now(),
+          name: name,
+          x: x,
+          y: y,
+          width: width,
+          height: height
+        };
+        
+        state.seatingAreas.push(newSeating);
+        state.showAddSeatingForm = false;
+        render();
+        alert(`✓ Added seating area: ${name}!`);
+      }
+    });
+  }
+
+  // ── SEATING CANCEL ──
+  const seatingCancel = document.getElementById('seating-cancel');
+  if (seatingCancel) {
+    seatingCancel.addEventListener('click', () => {
+      state.showAddSeatingForm = false;
+      state.editingSeatingId = null;
+      render();
+    });
+  }
+
+  // ── STAGE SIZE TOGGLE ──
+  const toggleStageSize = document.getElementById('toggle-stage-size');
+  if (toggleStageSize) {
+    toggleStageSize.addEventListener('click', () => {
+      state.editingStageSize = !state.editingStageSize;
+      if (!state.editingStageSize) {
+        // Save stage size when toggling off
+        const widthInput = document.getElementById('stage-width-input');
+        const heightInput = document.getElementById('stage-height-input');
+        if (widthInput && heightInput) {
+          const width = parseFloat(widthInput.value) || state.stage.width;
+          const height = parseFloat(heightInput.value) || state.stage.height;
+          if (width >= 5 && width <= 50 && height >= 5 && height <= 30) {
+            state.stage.width = width;
+            state.stage.height = height;
+          }
+        }
+      }
+      render();
+    });
+  }
+
+  // ── IMPORT CSV TEXTAREA ──
+  const importCsv = document.getElementById('import-csv');
+  if (importCsv) {
+    importCsv.addEventListener('input', (e) => {
+      state.importData = e.target.value;
+    });
+  }
+
+  // ── IMPORT SAVE ──
+  const importSave = document.getElementById('import-save');
+  if (importSave) {
+    importSave.addEventListener('click', () => {
+      if (!state.importData.trim()) return;
+      
+      const lines = state.importData.trim().split('\n');
+      const newVendors = [];
+      let errors = [];
+      
+      lines.forEach((line, idx) => {
+        if (!line.trim()) return; // skip empty lines
+        const parts = line.split(',').map(p => p.trim());
+        
+        if (parts.length < 6) {
+          errors.push(`Row ${idx + 1}: Missing fields`);
+          return;
+        }
+        
+        const [name, booth, specialty, type, xStr, yStr, categoriesStr] = parts;
+        const x = parseFloat(xStr);
+        const y = parseFloat(yStr);
+        
+        if (isNaN(x) || isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
+          errors.push(`Row ${idx + 1}: Invalid X/Y coordinates`);
+          return;
+        }
+        
+        if (!['wing', 'craft', 'nonfood'].includes(type)) {
+          errors.push(`Row ${idx + 1}: Type must be 'wing', 'craft', or 'nonfood'`);
+          return;
+        }
+        
+        // Parse categories - handle both quoted and unquoted
+        let categories = [];
+        if (categoriesStr && categoriesStr !== '""' && categoriesStr.trim()) {
+          categories = categoriesStr
+            .replace(/^"|"$/g, '') // Remove outer quotes if present
+            .split(';')
+            .map(c => c.trim())
+            .filter(c => c && CONTEST_CATS.includes(c));
+        }
+        
+        // For wing vendors with categories, auto-assign them to vote categories
+        // For craft and nonfood, they don't appear in voting
+        const voteCategories = type === 'wing' ? categories : [];
+        
+        newVendors.push({
+          id: Math.max(...state.vendors.map(v => v.id), 0) + newVendors.length + 1,
+          name,
+          booth,
+          specialty,
+          type,
+          loc: { x, y },
+          categories: voteCategories, // This is used for voting
+          votes: {}
+        });
+      });
+      
+      if (errors.length > 0) {
+        alert('Import errors:\n' + errors.join('\n'));
+        return;
+      }
+      
+      if (newVendors.length === 0) {
+        alert('No valid vendors found');
+        return;
+      }
+      
+      state.vendors.push(...newVendors);
+      state.importData = '';
+      state.showVendorImport = false;
+      render();
+      alert(`✓ Imported ${newVendors.length} vendors!\n\nWing vendors added to their vote categories.\nCraft & non-wing food vendors won't appear in voting.`);
+    });
+  }
+
+  // ── IMPORT CANCEL ──
+  const importCancel = document.getElementById('import-cancel');
+  if (importCancel) {
+    importCancel.addEventListener('click', () => {
+      state.importData = '';
+      state.showVendorImport = false;
+      render();
+    });
+  }
+
+  // ── VENDOR TYPE CHANGE ──
+  const nvfType = document.getElementById('nvf-type');
+  if (nvfType) {
+    nvfType.addEventListener('change', (e) => { 
+      state.newVendorForm.type = e.target.value;
+      // Reset categories if switching to non-wing
+      if (state.newVendorForm.type !== 'wing') {
+        state.newVendorForm.categories = [];
+      }
+      render(); 
+    });
+  }
+
+  // ── CATEGORY BUTTON HANDLERS ──
+  document.querySelectorAll('.nvf-category-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cat = btn.dataset.cat;
+      if (state.newVendorForm.categories.includes(cat)) {
+        state.newVendorForm.categories = state.newVendorForm.categories.filter(c => c !== cat);
+      } else if (state.newVendorForm.categories.length < 3) {
+        state.newVendorForm.categories.push(cat);
+      }
+      render();
+    });
+  });
+
+  const nvfName = document.getElementById('nvf-name');
+  const nvfBooth = document.getElementById('nvf-booth');
+  const nvfSpecialty = document.getElementById('nvf-specialty');
+  const nvfX = document.getElementById('nvf-x');
+  const nvfY = document.getElementById('nvf-y');
+
+  if (nvfName) nvfName.addEventListener('input', (e) => { state.newVendorForm.name = e.target.value; });
+  if (nvfBooth) nvfBooth.addEventListener('input', (e) => { state.newVendorForm.booth = e.target.value; });
+  if (nvfSpecialty) nvfSpecialty.addEventListener('input', (e) => { state.newVendorForm.specialty = e.target.value; });
+  if (nvfX) nvfX.addEventListener('input', (e) => { state.newVendorForm.x = +e.target.value; });
+  if (nvfY) nvfY.addEventListener('input', (e) => { state.newVendorForm.y = +e.target.value; });
+
+  const nvfSave = document.getElementById('nvf-save');
+  if (nvfSave) {
+    nvfSave.addEventListener('click', () => {
+      if (!state.newVendorForm.name || !state.newVendorForm.booth) return;
+      const newVendor = {
+        id: Math.max(...state.vendors.map(v => v.id), 0) + 1,
+        name: state.newVendorForm.name,
+        specialty: state.newVendorForm.specialty,
+        loc: { x: state.newVendorForm.x, y: state.newVendorForm.y },
+        booth: state.newVendorForm.booth,
+        type: state.newVendorForm.type,
+        categories: state.newVendorForm.type === 'wing' ? state.newVendorForm.categories : [],
+        votes: {}
+      };
+      state.vendors.push(newVendor);
+      state.newVendorForm = { name: '', specialty: '', booth: '', x: 50, y: 50, type: 'wing', categories: [] };
+      state.showNewVendorForm = false;
+      render();
+      alert(`✓ Added ${newVendor.name}!`);
+    });
+  }
+
+  const nvfCancel = document.getElementById('nvf-cancel');
+  if (nvfCancel) {
+    nvfCancel.addEventListener('click', () => {
+      state.newVendorForm = { name: '', specialty: '', booth: '', x: 50, y: 50, type: 'wing', categories: [] };
+      state.showNewVendorForm = false;
+      render();
+    });
+  }
+
+  // ── APPLY SECTION TABS ──
+  document.querySelectorAll('[data-asec]').forEach(el => {
+    el.addEventListener('click', () => { state.applySection = el.dataset.asec; render(); });
+  });
+
+  // ── VENDOR FORM INPUTS ──
+  ['vendorName','contactName','phone','address','email','menu','spaceNeeded'].forEach(k => {
+    const el = document.getElementById(`vf-${k}`);
+    if (el) el.addEventListener('input', () => { state.vForm[k] = el.value; updateVendorSubmitBtn(); });
+  });
+  const vfVouchers = document.getElementById('vf-vouchers');
+  if (vfVouchers) vfVouchers.addEventListener('input', () => { state.vForm.wingsVouchers = vfVouchers.value; });
+
+  // ── SPACE CARDS ──
+  document.querySelectorAll('[data-space]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.selectedSpace = el.dataset.space;
+      state.selectedDays = [];
+      state.needsFryer = false;
+      render();
+    });
+  });
+
+  // ── DAY BUTTONS ──
+  document.querySelectorAll('[data-day]').forEach(el => {
+    el.addEventListener('click', () => {
+      const d = el.dataset.day;
+      if (d === 'Both Days') { state.selectedDays = ['Both Days']; }
+      else {
+        state.selectedDays = state.selectedDays.includes('Both Days')
+          ? [d]
+          : state.selectedDays.includes(d)
+            ? state.selectedDays.filter(x => x !== d)
+            : [...state.selectedDays.filter(x => x !== 'Both Days'), d];
+      }
+      render();
+    });
+  });
+
+  // ── FRYER ──
+  const fryerRow = document.getElementById('fryer-row');
+  if (fryerRow) fryerRow.addEventListener('click', () => { state.needsFryer = !state.needsFryer; render(); });
+
+  // ── CONTEST ──
+  document.querySelectorAll('[data-contest]').forEach(el => {
+    el.addEventListener('click', () => { state.enterContest = el.dataset.contest; render(); });
+  });
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    el.addEventListener('click', () => {
+      const c = el.dataset.cat;
+      if (state.contestCats.includes(c)) {
+        state.contestCats = state.contestCats.filter(x => x !== c);
+      } else if (state.contestCats.length < 3) {
+        state.contestCats = [...state.contestCats, c];
+      }
+      render();
+    });
+  });
+
+  // ── LOC ──
+  document.querySelectorAll('[data-loc]').forEach(el => {
+    el.addEventListener('click', () => { state.sameLocation = el.dataset.loc; render(); });
+  });
+
+  // ── VENDOR AGREEMENT CHECKBOX ──
+  const vendorAgreeCheck = document.getElementById('vendor-agree');
+  if (vendorAgreeCheck) {
+    vendorAgreeCheck.addEventListener('change', () => {
+      state.vendorAgree = vendorAgreeCheck.checked;
+      updateVendorSubmitBtn();
+    });
+  }
+
+  // ── VENDOR SUBMIT ──
+  const vsBtn = document.getElementById('vendor-submit');
+  if (vsBtn) vsBtn.addEventListener('click', async () => {
+    if (!state.vForm.vendorName || !state.vForm.contactName || !state.vForm.email || !state.selectedSpace || !state.vendorAgree) return;
+    
+    // Prepare data for external submission
+    const formData = new FormData();
+    formData.append('type', 'vendor');
+    formData.append('vendorName', state.vForm.vendorName);
+    formData.append('contactName', state.vForm.contactName);
+    formData.append('phone', state.vForm.phone);
+    formData.append('address', state.vForm.address);
+    formData.append('email', state.vForm.email);
+    formData.append('spaceType', SPACE_OPTIONS.find(o => o.id === state.selectedSpace)?.label);
+    formData.append('menu', state.vForm.menu);
+    formData.append('spaceNeeded', state.vForm.spaceNeeded);
+    formData.append('sameLocation', state.sameLocation);
+    formData.append('enterContest', state.enterContest);
+    formData.append('categories', state.contestCats.join(', '));
+    formData.append('wingsVouchers', state.vForm.wingsVouchers);
+    formData.append('timestamp', new Date().toLocaleString());
+    
+    // Send to external service (Formspree)
+    try {
+      await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      }).catch(() => {}); // Silently fail if no internet
+    } catch (err) {
+      console.log('External submission not available');
+    }
+    
+    // Save submission locally
+    const submission = {
+      id: Date.now(),
+      type: 'vendor',
+      name: state.vForm.vendorName,
+      contact: state.vForm.contactName,
+      email: state.vForm.email,
+      space: SPACE_OPTIONS.find(o => o.id === state.selectedSpace)?.label,
+      timestamp: new Date().toLocaleString(),
+      date: new Date(),
+    };
+    state.submissions.unshift(submission);
+    localStorage.setItem('wingfling_submissions', JSON.stringify(state.submissions));
+    updateNotifications();
+    
+    state.vendorSubmitted = true;
+    render();
+  });
+
+  // ── VENDOR RESET ──
+  const vrBtn = document.getElementById('vendor-reset');
+  if (vrBtn) vrBtn.addEventListener('click', () => {
+    state.vendorSubmitted = false;
+    state.selectedSpace = null;
+    state.selectedDays = [];
+    state.needsFryer = false;
+    state.enterContest = null;
+    state.contestCats = [];
+    state.sameLocation = null;
+    state.vForm = { vendorName:'',contactName:'',phone:'',address:'',email:'',menu:'',spaceNeeded:'',wingsVouchers:'' };
+    render();
+  });
+
+  // ── SPONSOR TABS ──
+  document.querySelectorAll('[data-stab]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.sponsorTab = el.dataset.stab;
+      state.selectedLevel = null;
+      state.selectedShirt = null;
+      render();
+    });
+  });
+
+  // ── TIER SELECTION ──
+  document.querySelectorAll('[data-tier]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.selectedLevel = el.dataset.tier;
+      state.selectedShirt = null;
+      render();
+    });
+  });
+
+  // ── SHIRT ──
+  document.querySelectorAll('[data-shirt]').forEach(el => {
+    el.addEventListener('click', () => { state.selectedShirt = el.dataset.shirt; render(); });
+  });
+
+  // ── SPONSOR FORM INPUTS ──
+  ['bizName','contact','phone','email','donation'].forEach(k => {
+    const el = document.getElementById(`sf-${k}`);
+    if (el) el.addEventListener('input', () => { state.sForm[k] = el.value; updateSponsorSubmitBtn(); });
+  });
+
+  // ── SPONSOR AGREEMENT CHECKBOX ──
+  const sponsorAgreeCheck = document.getElementById('sponsor-agree');
+  if (sponsorAgreeCheck) {
+    sponsorAgreeCheck.addEventListener('change', () => {
+      state.sponsorAgree = sponsorAgreeCheck.checked;
+      updateSponsorSubmitBtn();
+    });
+  }
+
+  // ── SPONSOR SUBMIT ──
+  const ssBtn = document.getElementById('sponsor-submit');
+  if (ssBtn) ssBtn.addEventListener('click', async () => {
+    if (!state.sForm.bizName || !state.sForm.contact || !state.sForm.email || !state.selectedLevel || !state.sponsorAgree) return;
+    
+    // Prepare data for external submission
+    const formData = new FormData();
+    formData.append('type', 'sponsor');
+    formData.append('businessName', state.sForm.bizName);
+    formData.append('contactPerson', state.sForm.contact);
+    formData.append('phone', state.sForm.phone);
+    formData.append('email', state.sForm.email);
+    formData.append('sponsorshipLevel', state.selectedLevel);
+    formData.append('event', state.sponsorTab === 'wingfling' ? 'Wing Fling' : '5K Run/Walk');
+    formData.append('shirtSize', state.selectedShirt || 'N/A');
+    formData.append('inKindDonation', state.sForm.donation);
+    formData.append('timestamp', new Date().toLocaleString());
+    
+    // Send to external service (Formspree)
+    try {
+      await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      }).catch(() => {}); // Silently fail if no internet
+    } catch (err) {
+      console.log('External submission not available');
+    }
+    
+    // Save submission locally
+    const submission = {
+      id: Date.now(),
+      type: 'sponsor',
+      name: state.sForm.bizName,
+      contact: state.sForm.contact,
+      email: state.sForm.email,
+      level: state.selectedLevel,
+      event: state.sponsorTab === 'wingfling' ? 'Wing Fling' : '5K Run/Walk',
+      timestamp: new Date().toLocaleString(),
+      date: new Date(),
+    };
+    state.submissions.unshift(submission);
+    localStorage.setItem('wingfling_submissions', JSON.stringify(state.submissions));
+    updateNotifications();
+    
+    state.sponsorSubmitted = true;
+    render();
+  });
+
+  // ── SPONSOR RESET ──
+  const srBtn = document.getElementById('sponsor-reset');
+  if (srBtn) srBtn.addEventListener('click', () => {
+    state.sponsorSubmitted = false;
+    state.selectedLevel = null;
+    state.selectedShirt = null;
+    state.sForm = { bizName:'',contact:'',phone:'',email:'',donation:'' };
+    render();
+  });
+}
+
+function updateVendorSubmitBtn() {
+  const btn = document.getElementById('vendor-submit');
+  if (!btn) return;
+  const ok = state.vForm.vendorName && state.vForm.contactName && state.vForm.email && state.selectedSpace && state.vendorAgree;
+  btn.disabled = !ok;
+}
+
+function updateSponsorSubmitBtn() {
+  const btn = document.getElementById('sponsor-submit');
+  if (!btn) return;
+  btn.disabled = !(state.sForm.bizName && state.sForm.contact && state.sForm.email && state.selectedLevel && state.sponsorAgree);
+}
+
+// ─────────────────────────────────────────────
+// MAIN NAV
+// ─────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.tab = btn.dataset.tab;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+// ─────────────────────────────────────────────
+// PWA — Service Worker & Install Banner
+// ─────────────────────────────────────────────
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    console.log('Service Worker registered');
+  }).catch(err => {
+    console.log('Service Worker registration not available in this context');
+  });
+} else if (location.protocol !== 'https:') {
+  console.log('Service Worker requires HTTPS. App works offline-first only over secure connection.');
+}
+
+let deferredPrompt = null;
+const installBanner = document.getElementById('install-banner');
+
+// Only enable PWA install on HTTPS or localhost
+if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.style.display = 'flex';
+  });
+
+  document.getElementById('install-yes').addEventListener('click', async () => {
+    installBanner.style.display = 'none';
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    }
+  });
+
+  document.getElementById('install-no').addEventListener('click', () => {
+    installBanner.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBanner.style.display = 'none';
+    deferredPrompt = null;
+  });
+} else {
+  // Hide install banner on non-HTTPS
+  installBanner.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+function updateNotifications() {
+  const btn = document.getElementById('notif-btn');
+  const count = document.getElementById('notif-count');
+  const list = document.getElementById('notif-list');
+  
+  const total = state.submissions.length;
+  if (btn) {
+    btn.style.display = total > 0 ? 'flex' : 'none';
+    if (count) count.textContent = total;
+  }
+  
+  if (list) {
+    list.innerHTML = state.submissions.map((sub, i) => {
+      if (sub.type === 'vendor') {
+        return `
+          <div style="padding:12px 16px;border-bottom:1px solid #222;font-size:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <strong style="color:#f97316">New Vendor</strong>
+              <span style="color:#666;font-size:11px">${sub.timestamp.split(',')[0]}</span>
+            </div>
+            <div style="color:#bbb">${sub.name}</div>
+            <div style="color:#888;font-size:11px;margin-top:2px">${sub.contact} · ${sub.email}</div>
+            <div style="color:#666;font-size:11px;margin-top:3px">📦 ${sub.space}</div>
+          </div>`;
+      } else {
+        return `
+          <div style="padding:12px 16px;border-bottom:1px solid #222;font-size:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <strong style="color:#fb923c">New Sponsor</strong>
+              <span style="color:#666;font-size:11px">${sub.timestamp.split(',')[0]}</span>
+            </div>
+            <div style="color:#bbb">${sub.name}</div>
+            <div style="color:#888;font-size:11px;margin-top:2px">${sub.contact} · ${sub.email}</div>
+            <div style="color:#666;font-size:11px;margin-top:3px">🏆 ${sub.level} · ${sub.event}</div>
+          </div>`;
+      }
+    }).join('');
+  }
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+render();
+updateNotifications();
+
+// Notification panel toggle
+document.getElementById('notif-btn').addEventListener('click', () => {
+  state.showNotifications = !state.showNotifications;
+  const panel = document.getElementById('notifications-panel');
+  if (panel) panel.style.display = state.showNotifications ? 'block' : 'none';
+});
+
+document.getElementById('close-notif').addEventListener('click', () => {
+  state.showNotifications = false;
+  const panel = document.getElementById('notifications-panel');
+  if (panel) panel.style.display = 'none';
+});
+
+// ─────────────────────────────────────────────
+// FIREBASE INITIALIZATION (must be after Firebase scripts load)
+// ─────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyArKmiLak_caObFJSz4isnlj7UkrGbl4HE",
+  authDomain: "wing-fling-festival.firebaseapp.com",
+  databaseURL: "https://wing-fling-festival-default-rtdb.firebaseio.com",
+  projectId: "wing-fling-festival",
+  storageBucket: "wing-fling-festival.firebasestorage.app",
+  messagingSenderId: "467364211589",
+  appId: "1:467364211589:web:1165c39a3d7501c92cf2ec",
+  measurementId: "G-HRLLRMESV7"
+};
+
+// Wait for Firebase to be available
+function initializeFirebase() {
+  if (typeof firebase === 'undefined') {
+    // Firebase not loaded yet, try again
+    setTimeout(initializeFirebase, 100);
+    return;
+  }
+  
+  // Initialize Firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  window.db = firebase.database();
+  firebaseReady = true;
+  console.log('✓ Firebase initialized');
+  
+  // Load initial data from Firebase
+  console.log('Loading Firebase data...');
+  loadSavedData();
+  // Start listening for real-time updates after 1 second
+  setTimeout(() => setupRealtimeListeners(), 1000);
+}
+
+// Start Firebase initialization
+initializeFirebase();
+</script>
+</body>
+</html>
