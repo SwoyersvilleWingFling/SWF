@@ -765,6 +765,7 @@ function loadSavedData() {
           if (data.seatingAreas) state.seatingAreas = data.seatingAreas;
           if (data.stage) state.stage = data.stage;
           console.log('✓ Loaded from Firebase');
+          fixVendorLocations(); // Fix any missing locations
           render(); // Re-render after loading
         }
       }).catch(err => console.error('Firebase load error:', err));
@@ -835,6 +836,20 @@ function setupRealtimeListeners() {
 
 // These will be called at the end after Firebase initializes
 const main = document.getElementById('main');
+
+// Fix vendors with missing loc data (from CSV import issue)
+function fixVendorLocations() {
+  state.vendors = state.vendors.map(v => {
+    if (!v.loc || !v.loc.x) {
+      // Generate a random location if missing
+      return {
+        ...v,
+        loc: { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10 }
+      };
+    }
+    return v;
+  });
+}
 
 let firebaseReady = false;
 
@@ -2826,6 +2841,7 @@ function initializeFirebase() {
   // Load initial data from Firebase
   console.log('Loading Firebase data...');
   loadSavedData();
+  fixVendorLocations(); // Fix any missing vendor locations
   // Start listening for real-time updates after 1 second
   setTimeout(() => setupRealtimeListeners(), 1000);
 }
