@@ -2087,29 +2087,7 @@ function bindEvents() {
   // ── ADMIN MODE BUTTON ──
   // ── ADMIN MODE BUTTON (HIDDEN AS CHICKEN LOGO) ──
   const hiddenAdminBtn = document.getElementById('hidden-admin-btn');
-  if (hiddenAdminBtn) {
-    hiddenAdminBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (state.adminMode) {
-        // Exit admin mode
-        state.adminMode = false;
-        state.showNewVendorForm = false;
-        state.showVendorImport = false;
-        render();
-      } else if (state.isAuthenticated) {
-        // Already authenticated, just toggle
-        state.adminMode = !state.adminMode;
-        state.showNewVendorForm = false;
-        state.showVendorImport = false;
-        render();
-      } else {
-        // Need password
-        state.showPasswordPrompt = true;
-        state.passwordInput = '';
-        render();
-      }
-    });
-  }
+  // Admin button handler moved outside bindEvents to prevent duplicate listeners
 
   const adminBtn = document.getElementById('admin-mode-btn');
   if (adminBtn) {
@@ -2904,6 +2882,35 @@ document.addEventListener('touchmove', () => {
     render();
   }
 }, { passive: true });
+
+// ── ADMIN BUTTON HANDLER (ONE TIME SETUP) ──
+// Add this ONCE at startup, not in bindEvents to avoid duplicate listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const hiddenAdminBtn = document.getElementById('hidden-admin-btn');
+  if (hiddenAdminBtn) {
+    hiddenAdminBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (state.adminMode) {
+        // Exit admin mode
+        state.adminMode = false;
+        state.showNewVendorForm = false;
+        state.showVendorImport = false;
+        render();
+      } else if (state.isAuthenticated) {
+        // Already authenticated, just toggle
+        state.adminMode = !state.adminMode;
+        state.showNewVendorForm = false;
+        state.showVendorImport = false;
+        render();
+      } else {
+        // Need password
+        state.showPasswordPrompt = true;
+        state.passwordInput = '';
+        render();
+      }
+    });
+  }
+});
 
 // Start Firebase initialization
 initializeFirebase();
