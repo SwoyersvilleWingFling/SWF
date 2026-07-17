@@ -1609,16 +1609,17 @@ function bindEvents() {
     });
   });
 
-  // ── MAP CONTAINER CLICK AWAY ──
+  // ── MAP CONTAINER CLICK AWAY (WITH DELAY TO PREVENT IMMEDIATE DESELECT) ──
   const mapSvg = document.querySelector('.map-svg');
   if (mapSvg) {
     mapSvg.addEventListener('click', (e) => {
-      if (e.target === mapSvg) {
+      // Only deselect if we're clicking on the SVG background itself, not on a pin
+      if (e.target === mapSvg || e.target.tagName === 'svg') {
         state.selectedVendorId = null;
         console.log('Deselected vendor');
         render();
       }
-    });
+    }, true); // Use capture phase to prevent bubbling issues
   }
 
   // ── VOTE (SET PENDING) ──
