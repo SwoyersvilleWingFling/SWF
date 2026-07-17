@@ -263,12 +263,11 @@
       font-size: 8px; color: var(--orange); letter-spacing: 1px;
     }
     .pin-tooltip {
-      position: absolute; bottom: 115%; left: 50%;
-      transform: translateX(-50%);
+      position: absolute;
       background: #000; border: 1px solid var(--orange);
       color: var(--text); border-radius: 3px;
       padding: 7px 11px; white-space: nowrap;
-      font-size: 12px; z-index: 30;
+      font-size: 12px; z-index: 1000;
       box-shadow: 0 4px 20px rgba(249,115,22,0.3);
       pointer-events: none;
     }
@@ -1054,31 +1053,24 @@ function renderMap() {
     const zIndex = isSelected ? 200 : 10;
     
     // Smart positioning for tooltip - keep inside map
-    let tooltipStyle = '';
+    let tooltipStyle = 'position:absolute;';
     if (isSelected) {
       // If vendor is on right side of map, show tooltip to the left
-      const isRight = v.loc.x > 60;
-      // If vendor is on bottom, show tooltip above
-      const isBottom = v.loc.y > 70;
-      
-      if (isRight) {
-        tooltipStyle = 'right:100%;margin-right:10px;';
+      if (v.loc.x > 60) {
+        tooltipStyle += 'right:calc(100% + 10px);';
       } else {
-        tooltipStyle = 'left:100%;margin-left:10px;';
+        tooltipStyle += 'left:calc(100% + 10px);';
       }
       
-      if (isBottom) {
-        tooltipStyle += 'bottom:50%;transform:translateY(50%);';
-      } else {
-        tooltipStyle += 'top:50%;transform:translateY(-50%);';
-      }
+      // Vertical centering
+      tooltipStyle += 'top:50%;transform:translateY(-50%);';
     }
     
     return `
     <div class="map-pin" style="left:${v.loc.x}%;top:${v.loc.y}%;${state.adminMode?'cursor:move;':'cursor:pointer;'}z-index:${zIndex}" data-pin="${v.id}" data-vendorid="${v.id}">
       <div class="pin-dot" id="pin-${v.id}" style="user-select:none;background:${color};width:${size}px;height:${size}px;transition:all 0.3s" data-vendorid="${v.id}"><span>${isSelected ? '🍗🍗' : '🍗'}</span></div>
       <div class="pin-label">${v.booth}</div>
-      <div class="pin-tooltip" id="tip-${v.id}" style="display:${isSelected ? 'block' : 'none'};${tooltipStyle}position:absolute;white-space:nowrap;z-index:1000">
+      <div class="pin-tooltip" id="tip-${v.id}" style="${tooltipStyle}display:${isSelected ? 'block' : 'none'};">
         <strong>${v.name}</strong><em>${v.specialty}</em>
         <div style="margin-top:4px;font-size:10px;color:#999">${v.type === 'wing' ? '🍗 Wing' : v.type === 'craft' ? '🎨 Craft' : '🍕 Non-Wing Food'}</div>
         ${state.adminMode ? `<div style="margin-top:6px;font-size:10px;color:#f97316">📍 ${v.loc.x.toFixed(0)}%, ${v.loc.y.toFixed(0)}%</div>` : ''}
@@ -1607,23 +1599,23 @@ function renderSponsor() {
 // ─────────────────────────────────────────────
 function bindEvents() {
   // ── MAP PIN SELECTION (CLICK TO SHOW) ──
-  document.querySelectorAll('.map-pin').forEach(el => {
+  document.querySelectorAll('.pin-dot').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       const vendorId = +el.dataset.vendorid;
-      // Toggle selection - if clicked vendor is already selected, deselect; otherwise select it
-      state.selectedVendorId = state.selectedVendorId === vendorId ? null : vendorId;
+      state.selectedVendorId = vendorId;
+      console.log('Vendor selected:', vendorId);
       render();
     });
   });
 
-  // ── MAP CLICK AWAY (DESELECT) ──
-  const mapContainer = document.querySelector('.map-container');
-  if (mapContainer) {
-    mapContainer.addEventListener('click', (e) => {
-      // Only deselect if clicking on map background, not on a pin
-      if (e.target === mapContainer || e.target === e.currentTarget) {
+  // ── MAP CONTAINER CLICK AWAY ──
+  const mapSvg = document.querySelector('.map-svg');
+  if (mapSvg) {
+    mapSvg.addEventListener('click', (e) => {
+      if (e.target === mapSvg) {
         state.selectedVendorId = null;
+        console.log('Deselected vendor');
         render();
       }
     });
