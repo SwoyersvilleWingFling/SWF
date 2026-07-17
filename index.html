@@ -1619,18 +1619,6 @@ function bindEvents() {
     });
   });
 
-  // ── DESELECT VENDOR ON PAGE SCROLL ──
-  const main = document.getElementById('main');
-  if (main) {
-    main.addEventListener('scroll', () => {
-      if (state.selectedVendorId) {
-        state.selectedVendorId = null;
-        console.log('Vendor deselected (scroll)');
-        render();
-      }
-    });
-  }
-
   // ── VOTE (SET PENDING) ──
   document.querySelectorAll('[data-voteid]').forEach(el => {
     el.addEventListener('click', (e) => {
@@ -2897,6 +2885,16 @@ function initializeFirebase() {
   // Start listening for real-time updates after 1 second
   setTimeout(() => setupRealtimeListeners(), 1000);
 }
+
+// ── GLOBAL SCROLL LISTENER (ONE TIME SETUP) ──
+// Deselect vendor when user scrolls the page
+window.addEventListener('scroll', () => {
+  if (state.selectedVendorId) {
+    state.selectedVendorId = null;
+    console.log('Vendor deselected by scroll');
+    render();
+  }
+}, { passive: true });
 
 // Start Firebase initialization
 initializeFirebase();
