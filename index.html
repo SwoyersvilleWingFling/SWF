@@ -2864,25 +2864,6 @@ function initializeFirebase() {
   setTimeout(() => setupRealtimeListeners(), 1000);
 }
 
-// ── GLOBAL SCROLL LISTENER (ONE TIME SETUP) ──
-// Deselect vendor when user scrolls the page
-window.addEventListener('scroll', () => {
-  if (state.selectedVendorId) {
-    console.log('Window scroll detected - deselecting');
-    state.selectedVendorId = null;
-    render();
-  }
-}, { passive: true });
-
-// Also listen for touch move (mobile scrolling)
-document.addEventListener('touchmove', () => {
-  if (state.selectedVendorId) {
-    console.log('Touchmove detected - deselecting');
-    state.selectedVendorId = null;
-    render();
-  }
-}, { passive: true });
-
 // ── ADMIN BUTTON HANDLER (ONE TIME SETUP) ──
 // Add this ONCE at startup, not in bindEvents to avoid duplicate listeners
 document.addEventListener('DOMContentLoaded', () => {
