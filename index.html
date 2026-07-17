@@ -1619,10 +1619,10 @@ function bindEvents() {
     });
   });
 
-  // ── DESELECT VENDOR ON SCROLL ──
-  const mapContainer = document.querySelector('.map-container');
-  if (mapContainer) {
-    mapContainer.addEventListener('scroll', () => {
+  // ── DESELECT VENDOR ON PAGE SCROLL ──
+  const main = document.getElementById('main');
+  if (main) {
+    main.addEventListener('scroll', () => {
       if (state.selectedVendorId) {
         state.selectedVendorId = null;
         console.log('Vendor deselected (scroll)');
