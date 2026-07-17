@@ -2890,8 +2890,17 @@ function initializeFirebase() {
 // Deselect vendor when user scrolls the page
 window.addEventListener('scroll', () => {
   if (state.selectedVendorId) {
+    console.log('Window scroll detected - deselecting');
     state.selectedVendorId = null;
-    console.log('Vendor deselected by scroll');
+    render();
+  }
+}, { passive: true });
+
+// Also listen for touch move (mobile scrolling)
+document.addEventListener('touchmove', () => {
+  if (state.selectedVendorId) {
+    console.log('Touchmove detected - deselecting');
+    state.selectedVendorId = null;
     render();
   }
 }, { passive: true });
