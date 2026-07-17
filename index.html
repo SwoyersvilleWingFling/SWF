@@ -569,10 +569,10 @@
       <div class="header-date">Jul 25–26, 2026<br>Roosevelt Field, PA</div>
     </div>
     <nav id="main-nav">
-      <button class="nav-btn active" data-tab="vote">Vote</button>
+      <button class="nav-btn active" data-tab="vote">Competition</button>
       <button class="nav-btn" data-tab="map">Map</button>
       <!-- <button class="nav-btn" data-tab="apply">Apply</button> -->
-      <button class="nav-btn" data-tab="sponsor">Sponsor</button>
+      <!-- <button class="nav-btn" data-tab="sponsor">Sponsor</button> -->
     </nav>
   </header>
 
@@ -857,7 +857,7 @@ function render() {
     case 'vote':    main.innerHTML = renderVote();    break;
     case 'map':     main.innerHTML = renderMap();     break;
     // case 'apply':   main.innerHTML = renderApply();   break;
-    case 'sponsor': main.innerHTML = renderSponsor(); break;
+    // case 'sponsor': main.innerHTML = renderSponsor(); break; // SPONSOR TAB HIDDEN - UNCOMMENT TO RESTORE
   }
   bindEvents();
   if (firebaseReady) saveData(); // Only save after Firebase is ready
