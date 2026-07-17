@@ -1598,13 +1598,23 @@ function renderSponsor() {
 // EVENT BINDING
 // ─────────────────────────────────────────────
 function bindEvents() {
-  // ── MAP PIN SELECTION (CLICK TO SHOW) ──
+  // ── MAP PIN SELECTION (CLICK/TOUCH TO SHOW) ──
   document.querySelectorAll('.map-pin').forEach(el => {
+    // Click event for desktop
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       const vendorId = +el.dataset.vendorid;
       state.selectedVendorId = vendorId;
-      console.log('Vendor selected:', vendorId);
+      console.log('Vendor selected (click):', vendorId);
+      render();
+    });
+    
+    // Touch event for mobile/tablet
+    el.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      const vendorId = +el.dataset.vendorid;
+      state.selectedVendorId = vendorId;
+      console.log('Vendor selected (touch):', vendorId);
       render();
     });
   });
