@@ -1619,6 +1619,18 @@ function bindEvents() {
     });
   });
 
+  // ── DESELECT VENDOR ON SCROLL ──
+  const mapContainer = document.querySelector('.map-container');
+  if (mapContainer) {
+    mapContainer.addEventListener('scroll', () => {
+      if (state.selectedVendorId) {
+        state.selectedVendorId = null;
+        console.log('Vendor deselected (scroll)');
+        render();
+      }
+    });
+  }
+
   // ── VOTE (SET PENDING) ──
   document.querySelectorAll('[data-voteid]').forEach(el => {
     el.addEventListener('click', (e) => {
