@@ -922,6 +922,8 @@ function renderVote() {
   }).join('');
 
   return `
+    <!-- VOTING SECTION COMMENTED OUT - CAN BE RESTORED ANYTIME -->
+    <!-- 
     <div class="section-header"><h2>Cast Your <span>Vote</span></h2><div class="divider-line"></div></div>
     
     <div style="margin-bottom:28px">
@@ -954,8 +956,11 @@ function renderVote() {
         ` : ''}
       </div>
     </div>
+    END VOTING SECTION -->
 
-    <div style="margin-top:40px;padding-top:28px;border-top:2px solid #2a2a2a">
+    <div class="section-header"><h2><span>Competition</span> Results</h2><div class="divider-line"></div></div>
+
+    <div style="margin-top:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
         <h3 style="font-family:'Black Han Sans',sans-serif;font-size:18px;color:#fff">🏅 Wing Fling Competition Results</h3>
         ${state.adminMode ? `<button id="edit-competition-btn" style="background:#f97316;color:#000;border:none;border-radius:3px;padding:6px 12px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700">✎ Edit</button>` : ''}
