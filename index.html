@@ -1599,27 +1599,27 @@ function renderSponsor() {
 // ─────────────────────────────────────────────
 function bindEvents() {
   // ── MAP PIN SELECTION (CLICK TO SHOW) ──
-  document.querySelectorAll('.pin-dot').forEach(el => {
+  document.querySelectorAll('.map-pin').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       const vendorId = +el.dataset.vendorid;
       state.selectedVendorId = vendorId;
-      console.log('Vendor selected:', vendorId);
+      console.log('Map-pin clicked. Vendor selected:', vendorId);
       render();
     });
   });
 
-  // ── MAP CONTAINER CLICK AWAY (WITH DELAY TO PREVENT IMMEDIATE DESELECT) ──
-  const mapSvg = document.querySelector('.map-svg');
-  if (mapSvg) {
-    mapSvg.addEventListener('click', (e) => {
-      // Only deselect if we're clicking on the SVG background itself, not on a pin
-      if (e.target === mapSvg || e.target.tagName === 'svg') {
+  // ── MAP BACKGROUND CLICK (DESELECT) ──
+  const mapContainer = document.querySelector('.map-container');
+  if (mapContainer) {
+    mapContainer.addEventListener('click', (e) => {
+      // Only deselect if clicking directly on container background
+      if (e.target === mapContainer) {
+        console.log('Map background clicked. Deselecting.');
         state.selectedVendorId = null;
-        console.log('Deselected vendor');
         render();
       }
-    }, true); // Use capture phase to prevent bubbling issues
+    });
   }
 
   // ── VOTE (SET PENDING) ──
