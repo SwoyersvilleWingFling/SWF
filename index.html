@@ -1604,23 +1604,10 @@ function bindEvents() {
       e.stopPropagation();
       const vendorId = +el.dataset.vendorid;
       state.selectedVendorId = vendorId;
-      console.log('Map-pin clicked. Vendor selected:', vendorId);
+      console.log('Vendor selected:', vendorId);
       render();
     });
   });
-
-  // ── MAP BACKGROUND CLICK (DESELECT) ──
-  const mapContainer = document.querySelector('.map-container');
-  if (mapContainer) {
-    mapContainer.addEventListener('click', (e) => {
-      // Only deselect if clicking directly on container background
-      if (e.target === mapContainer) {
-        console.log('Map background clicked. Deselecting.');
-        state.selectedVendorId = null;
-        render();
-      }
-    });
-  }
 
   // ── VOTE (SET PENDING) ──
   document.querySelectorAll('[data-voteid]').forEach(el => {
